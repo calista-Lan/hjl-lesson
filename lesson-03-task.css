@@ -2,14 +2,14 @@
  * 项目 1 · 第 3 课学生任务文件
  * 只改标有 TODO 的 5 行。保存后在浏览器按 Ctrl+R 查看结果。
  */
-
+/* 类选择器 */
 .portfolio-list {
   /* TODO A1：把 block 改成 grid。
    * display 决定元素内部怎样排列；block 是普通块级布局，子元素通常从上到下排列。
    * grid 是 CSS 网格布局。启用后，下一行 grid-template-columns 才能控制列数。
    * 修改结果：作品列表从普通单列容器变成可以设置行和列的网格容器。
    */
-  display: block;
+  display: grid;
 
   /* TODO A2：改成 repeat(2, minmax(0, 1fr))。
    * grid-template-columns 用来规定网格有几列，以及每一列有多宽。
@@ -19,7 +19,7 @@
    * minmax(0, 1fr) 表示该列最小可以缩到 0，最大占 1 份，长文字也不易把页面撑出横向滚动条。
    * 修改结果：桌面宽度下，一行显示两张等宽作品卡片。
    */
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 30px;
 }
 
@@ -28,14 +28,14 @@
   border: 1px solid #ded8cb;
   border-radius: 18px;
   background: #ffffff;
-  box-shadow: 0 12px 32px rgba(52, 60, 56, 0.08);
+  box-shadow: 0 12px 32px rgba(20, 22, 21, 0.08);
   /* TODO B1：改成 transform 180ms ease, box-shadow 180ms ease。
    * transition 表示“属性发生变化时怎样播放过渡动画”。
    * transform 和 box-shadow 是要播放动画的两个属性；逗号表示分别设置两组动画。
    * 180ms 是 180 毫秒，即 0.18 秒；ease 表示开始和结束较慢、中间较快。
    * 修改结果：鼠标移入和移出时，卡片位移与阴影会平滑变化。
    */
-  transition: none;
+  transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
 .work-card a { display: block; color: inherit; text-decoration: none; }
@@ -51,7 +51,7 @@
    * -4px 表示向上移动 4 个 CSS 像素；px 是屏幕布局常用的长度单位。
    * 修改结果：鼠标悬停或键盘聚焦卡片内链接时，卡片轻微上浮。
    */
-  transform: none;
+  transform: rotate(2deg);
   box-shadow: 0 16px 38px rgba(52, 60, 56, 0.14);
 }
 
