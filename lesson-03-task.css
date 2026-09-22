@@ -1,72 +1,90 @@
 /*
- * 项目 1 · 第 3 课学生任务文件
- * 只改标有 TODO 的 5 行。保存后在浏览器按 Ctrl+R 查看结果。
+ * 项目 1 · 第 3 课 · 作品门户样式（已升级为韩系绘画风）
+ * 保留网格布局；卡片视觉改为奶咖纸卡 + 柔色主题。
  */
-/* 类选择器 */
-.portfolio-list {
-  /* TODO A1：把 block 改成 grid。
-   * display 决定元素内部怎样排列；block 是普通块级布局，子元素通常从上到下排列。
-   * grid 是 CSS 网格布局。启用后，下一行 grid-template-columns 才能控制列数。
-   * 修改结果：作品列表从普通单列容器变成可以设置行和列的网格容器。
-   */
-  display: grid;
 
-  /* TODO A2：改成 repeat(2, minmax(0, 1fr))。
-   * grid-template-columns 用来规定网格有几列，以及每一列有多宽。
-   * repeat(2, X) 等于把 X 连续写两次，因此这里建立两列。
-   * fr 是 fraction（份额）的缩写，表示分配容器剩余空间时所占的份数。
-   * 1fr 就是“占 1 份剩余宽度”；两列都是 1fr，所以两列各占一半，不是固定 1 像素。
-   * minmax(0, 1fr) 表示该列最小可以缩到 0，最大占 1 份，长文字也不易把页面撑出横向滚动条。
-   * 修改结果：桌面宽度下，一行显示两张等宽作品卡片。
-   */
+/* 两列网格（桌面） */
+.portfolio-list {
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 30px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
+/* 作品卡：纸感圆角卡 */
 .work-card {
   overflow: hidden;
-  border: 1px solid #ded8cb;
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 12px 32px rgba(20, 22, 21, 0.08);
-  /* TODO B1：改成 transform 180ms ease, box-shadow 180ms ease。
-   * transition 表示“属性发生变化时怎样播放过渡动画”。
-   * transform 和 box-shadow 是要播放动画的两个属性；逗号表示分别设置两组动画。
-   * 180ms 是 180 毫秒，即 0.18 秒；ease 表示开始和结束较慢、中间较快。
-   * 修改结果：鼠标移入和移出时，卡片位移与阴影会平滑变化。
-   */
-  transition: transform 180ms ease, box-shadow 180ms ease;
+  background: var(--paper, #fffdf9);
+  border: 1px solid var(--line, #e7ddcf);
+  border-radius: 26px;
+  box-shadow: 0 12px 30px rgba(120, 100, 78, 0.10);
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+.work-card a {
+  display: block;
+  color: inherit;
+  text-decoration: none;
 }
 
-.work-card a { display: block; color: inherit; text-decoration: none; }
-.work-cover { display: block; aspect-ratio: 3 / 2; overflow: hidden; background: #edf1ea; }
-.work-cover img { width: 100%; height: 100%; object-fit: cover; }
-.work-copy { padding: 20px 22px 24px; }
+/* 封面：柔色底 + 轻微内描边，营造手绘相框感 */
+.work-cover {
+  display: block;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  background: var(--tint, #edf1ea);
+  position: relative;
+}
+.work-cover::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1.5px dashed rgba(255, 255, 255, 0.75);
+  border-radius: 16px;
+  pointer-events: none;
+}
+.work-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 320ms ease;
+}
+.work-card:hover .work-cover img,
+.work-card:focus-within .work-cover img {
+  transform: scale(1.05);
+}
 
+.work-copy { padding: 20px 24px 24px; }
+.work-copy h3 {
+  font-family: var(--serif, Georgia, serif);
+  font-size: 21px;
+  color: var(--ink, #4a4138);
+  margin: 0 0 6px;
+}
+.work-copy p { margin: 0; color: var(--ink-soft, #847a6e); font-size: 14px; }
+
+/* 悬停：柔和上浮 + 阴影加深 */
 .work-card:hover,
 .work-card:focus-within {
-  /* TODO B2：改成 translateY(-4px)。
-   * transform 用来改变元素的视觉位置、大小或角度，而不重新挤动周围卡片。
-   * translateY 表示沿垂直方向移动；Y 轴正方向向下，负数表示向上。
-   * -4px 表示向上移动 4 个 CSS 像素；px 是屏幕布局常用的长度单位。
-   * 修改结果：鼠标悬停或键盘聚焦卡片内链接时，卡片轻微上浮。
-   */
-  transform: rotate(2deg);
-  box-shadow: 0 16px 38px rgba(52, 60, 56, 0.14);
+  transform: translateY(-6px);
+  box-shadow: 0 20px 44px rgba(120, 100, 78, 0.16);
 }
 
+/* 每张作品一个柔色主题（样式丰富但不杂乱） */
+.work-blog         { --tint: #e7efe2; }   /* 鼠尾草 */
+.work-community    { --tint: #f4e3e0; }   /* 豆沙粉 */
+.work-greeting-card{ --tint: #e2eef0; }   /* 雾霾蓝 */
+.work-music-station{ --tint: #f6ecd9; }   /* 奶油黄 */
+
+/* 小屏：单列 */
 @media (max-width: 640px) {
   .portfolio-list {
-    /* TODO B3：改成 1fr。
-     * @media (max-width: 640px) 表示：只有浏览器可视区域宽度不超过 640px 时才执行这里的规则。
-     * max-width 是“最大宽度条件”，640px 是常用的小屏教学分界值，并不表示所有手机物理宽度都正好是 640px。
-     * 这里只写一个 1fr，代表网格只有一列；这一列取得全部可用宽度。
-     * 修改结果：小屏幕从每行两张卡片变为每行一张，文字和图片更容易阅读。
-     */
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .work-card { transition: none; }
+  .work-card,
+  .work-cover img { transition: none; }
 }

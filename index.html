@@ -13,12 +13,16 @@
   <link href="styles.css" rel="stylesheet"/>
   <!-- 第 3 课只新增这一张样式表，不覆盖前两课的 styles.css。 -->
   <link href="lesson-03-task.css" rel="stylesheet"/>
+  <!-- 留言板区块样式（钴蓝毛玻璃面板） -->
+  <link href="message-board.css" rel="stylesheet"/>
  
  </head>
  <body>
   <a class="skip-link" href="#main">
    跳到正文
   </a>
+  <div aria-hidden="true" class="scroll-progress">
+  </div>
   <header class="site-header">
    <div class="container header-inner">
     <a class="brand" href="#about">
@@ -47,38 +51,57 @@
      <a href="#publications">
       成果
      </a>
+     <a href="#message">
+      留言
+     </a>
     </nav>
    </div>
   </header>
   <main id="main">
    <!-- HTML 练习：修改姓名、研究方向、照片路径和联系方式。 -->
-   <section class="hero" id="about">
+   <!-- 首页 = 书封面：只放封面信息，详细资料在内页 -->
+   <section class="book-cover" id="about">
+    <div class="cover-frame">
+     <img alt="黄锦澜照片" class="cover-avatar" height="92" src="tx.jpg" width="92"/>
+     <span class="cover-kicker">
+      PORTFOLIO · 作品集
+     </span>
+     <h1 class="cover-title">
+      黄锦澜
+     </h1>
+     <p class="cover-pinyin">
+      huang jin lan
+     </p>
+     <p class="cover-role">
+      大模型应用开发专业 · 前端开发学习者
+     </p>
+     <p class="cover-tag">
+      把每一次练习，<br/>都画进自己的网页里
+     </p>
+     <a class="cover-scroll" href="#profile">
+      向下翻开内页 ↓
+     </a>
+    </div>
+   </section>
+
+   <!-- 内页：关于我（原首页的详细资料移到这里） -->
+   <section class="section" id="profile">
     <div class="container">
-     <div class="hero-top">
-      <div class="hero-copy">
-       <h1>
-        黄锦澜
-        <span>
-         huang
-        </span>
-       </h1>
-       <p class="hero-role">
-        大模型应用开发专业 · 前端开发学习者
-       </p>
-       <p class="hero-school">
-        广东科学技术职业学院 · 25大模型应用产业学院班
-       </p>
-      </div>
-      <div class="hero-visual">
-       <figure>
-        <img alt="tx.jpg" height="220" src="tx.jpg" width="220"/>
-       </figure>
-      </div>
-     </div>
-     <div class="research-direction" id="research-direction">
+     <p class="inside-lead">
+      <span>
+      </span>
+      内 页
+      <span>
+      </span>
+     </p>
+     <header class="section-heading">
+      <h2>
+       关于我
+      </h2>
+     </header>
      <div class="profile-details">
-        <div>
-       <span>
+      <div>
+       <span class="phone">
         学习方向
        </span>
        <p>
@@ -86,7 +109,7 @@
        </p>
       </div>
       <div>
-       <span>
+       <span class="phone">
         学习阶段
        </span>
        <p>
@@ -94,7 +117,7 @@
        </p>
       </div>
       <div>
-       <span>
+       <span class="phone">
         所在城市
        </span>
        <p>
@@ -102,16 +125,16 @@
        </p>
       </div>
       <div>
-       <span>
+       <span class="phone">
         联系
        </span>
        <p>
-        18927846419 <br>
+        18927846419 <br/>
         mdusbsssb@qq.com
        </p>
       </div>
       <div>
-       <span>
+       <span class="phone">
         学校地址
        </span>
        <p>
@@ -325,6 +348,160 @@
      </div>
     </div>
    </section>
+   <!-- 留言板：钴蓝底 + 毛玻璃气泡面板（参考小红书「米饼」的作品） -->
+   <section class="section message-section" id="message">
+    <div class="container">
+     <div class="message-board">
+      <!-- 左：招呼语 + 手绘涂鸦 + 照片 -->
+      <div class="mb-hello">
+       <p class="mb-hi">
+        Hi!
+       </p>
+       <p class="mb-callme">
+        CALL ME
+       </p>
+       <svg aria-hidden="true" class="mb-doodle" viewBox="0 0 230 54">
+        <path d="M8 40c26-30 52-32 74-12" fill="none" stroke="#8fd694" stroke-linecap="round" stroke-width="3.5"/>
+        <path d="M222 44c-24-34-52-36-78-14" fill="none" stroke="#8fd694" stroke-linecap="round" stroke-width="3.5"/>
+        <path d="M108 12c5-7 14-8 20-3" fill="none" stroke="#8fd694" stroke-linecap="round" stroke-width="3.5"/>
+       </svg>
+       <svg aria-hidden="true" class="mb-apple" viewBox="0 0 124 130">
+        <path d="M62 34c-3-9-1-17 5-23 5 7 5 17 1 24z" fill="#6b9c4f"/>
+        <path d="M70 22c10-13 28-13 34-6-6 14-23 18-34 10z" fill="#8fc176"/>
+        <path d="M58 36C40 18 10 26 8 56c-2 32 18 62 38 62 8 0 10-6 16-6s8 6 16 6c20 0 40-30 38-62-2-30-32-38-50-20z" fill="#e0483c"/>
+        <ellipse cx="40" cy="62" fill="#f4796c" opacity="0.55" rx="9" ry="13" transform="rotate(-22 40 62)"/>
+       </svg>
+       <figure class="mb-photo">
+        <img alt="黄锦澜照片" height="290" src="tx.jpg" width="232"/>
+       </figure>
+      </div>
+      <!-- 右：两块毛玻璃面板 -->
+      <div class="mb-panels">
+       <section aria-labelledby="mb-contact-title" class="glass-panel mb-contact">
+        <h3 class="mb-panel-title" id="mb-contact-title">
+         联系我
+        </h3>
+        <ul class="mb-contact-list">
+         <li>
+          <span class="mb-ico">
+           <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24">
+            <path d="M6 3h4l2 5-3 2a12 12 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2z"/>
+           </svg>
+          </span>
+          <span>
+           <a href="tel:18927846419">18927846419</a>
+          </span>
+         </li>
+         <li>
+          <span class="mb-ico">
+           <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewBox="0 0 24 24">
+            <path d="M12 2.5c3.1 0 5.4 2.3 5.4 5.2 0 1.5.6 2.5 1.5 3.7.9 1.3 1.6 2.7 1.6 4.2 0 1-.5 1.9-1.4 1.9-.7 0-1.2-.6-1.6-1.4-.4 1.4-1.5 2.3-2.6 2.3h-.2c-.6.9-1.4 1.4-2.3 1.4s-1.7-.5-2.3-1.4h-.2c-1.1 0-2.2-.9-2.6-2.3-.4.8-.9 1.4-1.6 1.4-.9 0-1.4-.9-1.4-1.9 0-1.5.7-2.9 1.6-4.2.9-1.2 1.5-2.2 1.5-3.7 0-2.9 2.3-5.2 5.4-5.2z"/>
+            <path d="M9.6 8.4h.01M14.4 8.4h.01" stroke-width="2.2"/>
+           </svg>
+          </span>
+          <span>
+           QQ · mdusbsssb
+          </span>
+         </li>
+         <li>
+          <span class="mb-ico">
+           <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24">
+            <rect height="14" rx="2.5" width="18" x="3" y="5"/>
+            <path d="M3.8 6.8 12 12.8l8.2-6"/>
+           </svg>
+          </span>
+          <span>
+           <a href="mailto:mdusbsssb@qq.com">mdusbsssb@qq.com</a>
+          </span>
+         </li>
+         <li>
+          <span class="mb-ico">
+           <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24">
+            <path d="M9.2 4.4C5.2 4.4 2 7 2 10.2c0 1.8 1 3.4 2.6 4.5L4 17.4l2.9-1.5c.7.2 1.5.3 2.3.3"/>
+            <path d="M14.8 8.6c3.9 0 7.2 2.4 7.2 5.4 0 1.7-1 3.2-2.5 4.2l.5 2.6-2.8-1.4c-.7.2-1.5.3-2.4.3-3.9 0-7.2-2.4-7.2-5.4s3.3-5.7 7.2-5.7z"/>
+           </svg>
+          </span>
+          <span>
+           微信 · 18927846419
+          </span>
+         </li>
+         <li>
+          <span class="mb-ico">
+           <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24">
+            <path d="M4 10.6 12 4l8 6.6V20a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/>
+           </svg>
+          </span>
+          <span>
+           <a href="https://j.map.baidu.com/e6/IQd" rel="noopener" target="_blank">广东省珠海市金湾区</a>
+          </span>
+         </li>
+        </ul>
+       </section>
+       <section aria-labelledby="mb-leave-title" class="glass-panel mb-leave">
+        <h3 class="mb-panel-title" id="mb-leave-title">
+         留言板
+        </h3>
+        <form class="mb-form" novalidate="">
+         <label class="sr-only" for="mb-message">
+          留言内容
+         </label>
+         <textarea id="mb-message" maxlength="200" name="message" placeholder="Start Message......" required=""></textarea>
+         <div aria-label="快捷表情" class="mb-emoji" role="group">
+          <button data-emoji="✨" type="button">
+           ✨
+          </button>
+          <button data-emoji="🌿" type="button">
+           🌿
+          </button>
+          <button data-emoji="☕" type="button">
+           ☕
+          </button>
+          <button data-emoji="🐱" type="button">
+           🐱
+          </button>
+         </div>
+         <label class="sr-only" for="mb-contact">
+          你的联系方式
+         </label>
+         <input id="mb-contact" maxlength="40" name="contact" placeholder="Your contact details?"/>
+         <p class="mb-error" hidden="">
+          先写点内容再贴上来吧～
+         </p>
+         <div class="mb-form-foot">
+          <span class="mb-count">
+           <span data-count="">
+            0
+           </span>
+           / 200
+          </span>
+          <button class="mb-submit" type="submit">
+           贴上留言 ✦
+          </button>
+         </div>
+        </form>
+       </section>
+      </div>
+     </div>
+     <!-- 留言弹幕：横向滚动、不显示留言人信息 -->
+     <section aria-labelledby="mb-list-title" class="glass-panel mb-list-panel">
+      <h3 class="mb-panel-title" id="mb-list-title">
+       留言弹幕
+       <small>
+        悬停暂停 · 滚动浏览
+       </small>
+      </h3>
+      <div aria-hidden="true" class="mb-danmaku">
+      </div>
+      <ol class="mb-stream" data-msg-stream="">
+      </ol>
+      <p class="mb-reset-row">
+       <button class="mb-reset" type="button">
+        清空我的留言
+       </button>
+      </p>
+     </section>
+    </div>
+   </section>
   </main>
   <footer>
    <div class="container footer-inner">
@@ -334,8 +511,18 @@
     <a href="#portfolio">
      作品门户
     </a>
+    <a href="#message">
+     给我留言
+    </a>
    </div>
   </footer>
+  <button aria-label="回到封面" class="to-cover" type="button">
+   ↑
+  </button>
+  <div aria-live="polite" class="mb-toast" role="status">
+  </div>
+  <script defer="" src="script.js">
+  </script>
  </body>
 </html>
 
