@@ -50,7 +50,7 @@
   /* 全站点缀：浅湖蓝（复古低饱和，深浅三档拉开层次，不再用朱红/芥黄） */
   --lake: #ffffff;        /* 浅湖蓝 · 主点缀（颜料点、笔触、描边） */
   --lake-deep: #21c0ff;   /* 湖蓝深一档 · 文字/按钮等需要对比的地方 */
-  --lake-soft: #202020;   /* 湖蓝淡一档 · 底纹微光 */
+  --lake-soft: #ffffff;   /* 湖蓝淡一档 · 底纹微光 */
 
   /* 仅用于表单校验等语义提示：复古砖红（不属于点缀色） */
   --warn: #b0573f;
@@ -113,7 +113,7 @@ img { max-width: 100%; height: auto; display: block; }
 .container { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
 
 a { color: var(--lake-deep); text-decoration: none; transition: color 0.2s ease; }
-a:hover { color: #33596a; }
+a:hover { color: #fffb00; }
 
 /* ---------- 跳转链接（无障碍） ---------- */
 .skip-link {
@@ -264,7 +264,7 @@ a:hover { color: #33596a; }
   top: 46%;
   height: 30px;
   z-index: 0;
-  background: linear-gradient(90deg, transparent, rgba(134, 179, 194, 0.55) 22%, rgba(134, 179, 194, 0.36) 78%, transparent);
+  background: linear-gradient(90deg, transparent, rgba(245, 243, 116, 0.55) 22%, rgba(134, 179, 194, 0.36) 78%, transparent);
   filter: url(#paint);
   opacity: 0.9;
   pointer-events: none;
@@ -386,14 +386,14 @@ a:hover { color: #33596a; }
 .profile-details > div {
   background: var(--paper);
   border: 1px solid var(--line);
-  border-left: 4px solid var(--lake);
+  border-left: 4px solid var(--lake-deep);
   border-radius: var(--radius);
   padding: 16px 18px;
   box-shadow: var(--shadow-sm);
   transition: transform 0.2s ease;
 }
-.profile-details > div:nth-child(even) { border-left-color: var(--lake-deep); }
 .profile-details > div:hover { transform: translateY(-3px); }
+/* 标签胶囊：五张卡统一用湖蓝深档，不再深浅交替（原文案下 --lake 是白色，交替会让字隐掉） */
 .profile-details span.phone {
   display: inline-block;
   font-size: 12px;
@@ -404,8 +404,6 @@ a:hover { color: #33596a; }
   border-radius: 999px;
   margin-bottom: 8px;
 }
-.profile-details > div:nth-child(even) span.phone { background: var(--lake); }
-.profile-details > div:nth-child(3) span.phone { background: var(--lake); }
 .profile-details p { margin: 0; font-size: 15px; color: var(--ink); }
 .profile-details a { color: var(--ink); border-bottom: 1px solid var(--lake); }
 .profile-details a:hover { color: var(--lake-deep); }
@@ -687,7 +685,7 @@ html.js .reveal.in {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.4), transparent 60%);
+  background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgb(247, 245, 241), transparent transparent 60%);
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
