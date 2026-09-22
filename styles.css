@@ -1,6 +1,7 @@
 /* =========================================================
-   韩系绘画风 · 简约个人主页
-   设计语言：奶咖底 + 手绘感柔色 + 留白 + 圆润卡片
+   艺术感个人主页 · Tomasz Szmajda 式画廊画风
+   设计语言：复古旧纸米白 + 铅笔手绘线框 + 油画笔触 + 画廊装裱
+   + 浅湖蓝点缀（低饱和复古调，全站统一，不用高亮色）
    ========================================================= */
 
 /* 衬线标题字（项目自带，已正确打包 woff2） */
@@ -36,22 +37,29 @@
 
 /* ---------- 设计变量 ---------- */
 :root {
-  /* 米白纸面（高级撞色的底） */
-  --bg: #f6efe2;
-  --bg-soft: #efe6d4;
-  --paper: #fffdf8;
+  /* 旧纸米白（复古底） */
+  --bg: #f4ecdd;
+  --bg-soft: #eadfc8;
+  --paper: #fdfaf0;
 
-  /* 近黑墨字（深底撞色用） */
-  --ink: #211c17;
-  --ink-soft: #6f655a;
-  --ink-faint: #b3a899;
+  /* 墨色文字：偏暖的旧墨，不用纯黑 */
+  --ink: #2f2820;
+  --ink-soft: #6b6155;
+  --ink-faint: #a99e8d;
 
-  /* 高级撞色：朱红 × 钴蓝（冷暖对撞），芥黄点缀 */
-  --vermilion: #e8553a;   /* 朱红 */
-  --cobalt: #27408b;      /* 钴蓝 */
-  --mustard: #e8b23a;     /* 芥黄 */
+  /* 全站点缀：浅湖蓝（复古低饱和，深浅三档拉开层次，不再用朱红/芥黄） */
+  --lake: #ffffff;        /* 浅湖蓝 · 主点缀（颜料点、笔触、描边） */
+  --lake-deep: #21c0ff;   /* 湖蓝深一档 · 文字/按钮等需要对比的地方 */
+  --lake-soft: #202020;   /* 湖蓝淡一档 · 底纹微光 */
 
-  --line: #e7ddcf;     /* 浅描边 */
+  /* 仅用于表单校验等语义提示：复古砖红（不属于点缀色） */
+  --warn: #b0573f;
+
+  /* 铅笔手绘线（画廊装裱用） */
+  --pencil: #3a342b;      /* 旧铅笔色 */
+  --mat: #fdfaf0;         /* 画廊卡纸（旧纸白） */
+
+  --line: #e6397c;     /* 浅描边 */
   --shadow: 18px 22px 40px rgba(120, 100, 78, 0.10);
   --shadow-sm: 0 8px 20px rgba(120, 100, 78, 0.08);
 
@@ -77,18 +85,18 @@ body {
   overflow-x: hidden;
 }
 
-/* 手绘感：底层柔色水彩晕 + 颗粒纸纹 */
+/* 手绘感：底层柔色水彩晕 + 颗粒纸纹（像画布） */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -2;
   background:
-    radial-gradient(42vw 42vw at 12% 8%, rgba(210, 154, 110, 0.16), transparent 60%),
-    radial-gradient(38vw 38vw at 88% 18%, rgba(169, 199, 207, 0.18), transparent 60%),
-    radial-gradient(46vw 46vw at 78% 88%, rgba(232, 194, 189, 0.16), transparent 62%),
-    radial-gradient(40vw 40vw at 18% 82%, rgba(155, 176, 138, 0.15), transparent 60%);
-  filter: blur(6px);
+    radial-gradient(40vw 40vw at 10% 6%, rgba(134, 179, 194, 0.14), transparent 58%),
+    radial-gradient(34vw 34vw at 90% 12%, rgba(78, 127, 147, 0.08), transparent 58%),
+    radial-gradient(46vw 46vw at 82% 90%, rgba(203, 222, 228, 0.18), transparent 60%),
+    radial-gradient(40vw 40vw at 14% 86%, rgba(176, 87, 63, 0.07), transparent 60%);
+  filter: blur(8px);
 }
 body::after {
   content: "";
@@ -96,16 +104,16 @@ body::after {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.5;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+  opacity: 0.6;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
 }
 
 img { max-width: 100%; height: auto; display: block; }
 
 .container { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
 
-a { color: var(--vermilion); text-decoration: none; transition: color 0.2s ease; }
-a:hover { color: #b87d4d; }
+a { color: var(--lake-deep); text-decoration: none; transition: color 0.2s ease; }
+a:hover { color: #33596a; }
 
 /* ---------- 跳转链接（无障碍） ---------- */
 .skip-link {
@@ -121,58 +129,87 @@ a:hover { color: #b87d4d; }
 .skip-link:focus { left: 0; }
 
 /* =========================================================
-   页头 / 导航
+   左侧竖排导航
+   参考图是半透明色块导航，这里按需求做得更淡、偏白：
+   一块浅浅的白色毛玻璃竖板 + 每个栏目一个小方块，当前栏目点亮。
    ========================================================= */
 .site-header {
-  position: sticky;
-  top: 0;
+  position: fixed;
+  left: 22px;
+  top: 50%;
+  transform: translateY(-50%);
   z-index: 40;
-  background: rgba(250, 245, 238, 0.78);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--line);
 }
 .header-inner {
+  /* 覆盖 .container 的宽高限制，改成一块竖板 */
+  max-width: none;
+  margin: 0;
+  width: 130px;
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
+  padding: 14px 11px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 16px 28px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px) saturate(1.08);
+  -webkit-backdrop-filter: blur(16px) saturate(1.08);
+  box-shadow: 0 20px 44px rgba(120, 100, 78, 0.13);
 }
 .brand {
   font-family: var(--serif);
   font-weight: 600;
-  font-size: 22px;
+  font-size: 15px;
   letter-spacing: 1px;
   color: var(--ink);
+  text-align: center;
+  padding-bottom: 11px;
+  border-bottom: 1px dashed var(--line);
   position: relative;
 }
 .brand::after {
   content: "";
   position: absolute;
-  left: 0;
-  bottom: -4px;
-  width: 26px;
+  left: 50%;
+  bottom: -2px;
+  transform: translateX(-50%);
+  width: 24px;
   height: 3px;
   border-radius: 3px;
-  background: var(--vermilion);
+  background: var(--lake);
 }
 .site-header nav {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  gap: 5px;
 }
 .site-header nav a {
+  display: block;
+  text-align: center;
   color: var(--ink-soft);
-  font-size: 15px;
-  padding: 7px 14px;
-  border-radius: 999px;
-  transition: background 0.2s ease, color 0.2s ease;
+  font-size: 14px;
+  letter-spacing: 1px;
+  padding: 8px 6px;
+  border-radius: 13px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.36);
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    transform 0.2s ease;
 }
 .site-header nav a:hover {
-  background: var(--paper);
+  background: rgba(255, 255, 255, 0.88);
   color: var(--ink);
-  box-shadow: var(--shadow-sm);
+  transform: translateX(3px);
+}
+/* 当前栏目：点亮成实体白块 + 浅湖蓝描边（统一点缀） */
+.site-header nav a.active {
+  background: #fff;
+  color: var(--ink);
+  font-weight: 600;
+  border-color: rgba(78, 127, 147, 0.45);
+  box-shadow: 0 8px 18px rgba(78, 127, 147, 0.16);
 }
 
 /* =========================================================
@@ -181,37 +218,82 @@ a:hover { color: #b87d4d; }
 .book-cover {
   min-height: 94vh;
   display: flex;
+  /* 纵向排列：封面卡在上、画廊铭牌在下，整体水平居中 */
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 96px 28px 64px;
   position: relative;
   perspective: 1200px;
-  /* 米白纸面 + 顶部一抹朱红光，像封面烫印 */
+  /* 米白纸面 + 顶部一抹湖蓝光，像封面烫印 */
   background:
-    radial-gradient(58vw 50vw at 50% -6%, rgba(232, 85, 58, 0.12), transparent 70%),
+    radial-gradient(58vw 50vw at 50% -6%, rgba(134, 179, 194, 0.16), transparent 70%),
     var(--bg);
 }
 .cover-frame {
   position: relative;
   width: min(620px, 100%);
   text-align: center;
-  padding: 52px 40px 44px;
-  border: 2px solid var(--vermilion);
+  padding: 56px 44px 50px;
+  border: 1.5px solid rgba(53, 48, 42, 0.85);
   border-radius: 30px;
-  background: linear-gradient(180deg, rgba(255, 253, 248, 0.82), rgba(255, 253, 248, 0.5));
+  background:
+    linear-gradient(180deg, rgba(255, 253, 248, 0.9), rgba(255, 253, 248, 0.66));
   box-shadow: var(--shadow);
   transform-style: preserve-3d;
   transition: transform 0.25s ease;
   will-change: transform;
 }
-/* 封面压线：内描边，像精装书书衣（钴蓝，与朱红撞色） */
+/* 手绘铅笔框：叠在 straight 边框上，抖动出徒手感 */
 .cover-frame::before {
   content: "";
   position: absolute;
-  inset: 12px;
-  border: 1px dashed var(--cobalt);
-  border-radius: 22px;
+  inset: 7px;
+  border: 2px solid var(--pencil);
+  border-radius: 24px;
+  opacity: 0.55;
+  filter: url(#pencil-soft);
   pointer-events: none;
+}
+/* 标题后的一抹湖蓝笔触（油画刷扫过，整站唯一的色块笔刷） */
+.cover-frame::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 46%;
+  height: 30px;
+  z-index: 0;
+  background: linear-gradient(90deg, transparent, rgba(134, 179, 194, 0.55) 22%, rgba(134, 179, 194, 0.36) 78%, transparent);
+  filter: url(#paint);
+  opacity: 0.9;
+  pointer-events: none;
+}
+.cover-frame > * { position: relative; z-index: 1; }
+/* 艺术家签名涂鸦（笔刷体，斜签在右下） */
+.cover-sign {
+  position: absolute;
+  right: 26px;
+  bottom: 14px;
+  z-index: 2;
+  font-family: "BrushWide", "TeaHand", var(--serif);
+  font-size: 26px;
+  color: var(--lake-deep);
+  transform: rotate(-9deg);
+  pointer-events: none;
+}
+/* 画廊铭牌：像画作下方的展签 */
+.cover-plate {
+  margin: 22px auto 0;
+  width: fit-content;
+  font-family: "ChunkPrint", var(--sans);
+  font-size: 12.5px;
+  letter-spacing: 2px;
+  color: var(--ink-soft);
+  padding: 6px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 253, 248, 0.7);
 }
 .cover-avatar {
   width: 92px;
@@ -227,7 +309,7 @@ a:hover { color: #b87d4d; }
   font-family: "ChunkPrint", var(--sans);
   letter-spacing: 5px;
   font-size: 13px;
-  color: var(--vermilion);
+  color: var(--lake-deep);
   margin: 0 0 16px;
 }
 .cover-title {
@@ -242,7 +324,7 @@ a:hover { color: #b87d4d; }
   font-family: "ChunkPrint", var(--sans);
   letter-spacing: 7px;
   text-transform: lowercase;
-  color: var(--cobalt);
+  color: var(--lake-deep);
   font-size: 14px;
   margin: 12px 0 18px;
 }
@@ -255,7 +337,7 @@ a:hover { color: #b87d4d; }
 .cover-tag {
   font-family: "TeaHand", var(--serif);
   font-size: 23px;
-  color: var(--vermilion);
+  color: var(--lake-deep);
   margin: 0;
   line-height: 1.6;
 }
@@ -267,7 +349,7 @@ a:hover { color: #b87d4d; }
   color: var(--ink-soft);
   animation: coverBob 2.4s ease-in-out infinite;
 }
-.cover-scroll:hover { color: var(--vermilion); }
+.cover-scroll:hover { color: var(--lake-deep); }
 @keyframes coverBob {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(6px); }
@@ -304,34 +386,35 @@ a:hover { color: #b87d4d; }
 .profile-details > div {
   background: var(--paper);
   border: 1px solid var(--line);
-  border-left: 4px solid var(--vermilion);
+  border-left: 4px solid var(--lake);
   border-radius: var(--radius);
   padding: 16px 18px;
   box-shadow: var(--shadow-sm);
   transition: transform 0.2s ease;
 }
-.profile-details > div:nth-child(even) { border-left-color: var(--cobalt); }
+.profile-details > div:nth-child(even) { border-left-color: var(--lake-deep); }
 .profile-details > div:hover { transform: translateY(-3px); }
 .profile-details span.phone {
   display: inline-block;
   font-size: 12px;
   letter-spacing: 2px;
   color: #fff;
-  background: var(--vermilion);
+  background: var(--lake-deep);
   padding: 3px 10px;
   border-radius: 999px;
   margin-bottom: 8px;
 }
-.profile-details > div:nth-child(even) span.phone { background: var(--cobalt); }
-.profile-details > div:nth-child(3) span.phone { background: var(--mustard); color: var(--ink); }
+.profile-details > div:nth-child(even) span.phone { background: var(--lake); }
+.profile-details > div:nth-child(3) span.phone { background: var(--lake); }
 .profile-details p { margin: 0; font-size: 15px; color: var(--ink); }
-.profile-details a { color: var(--ink); border-bottom: 1px solid var(--vermilion); }
-.profile-details a:hover { color: var(--vermilion); }
+.profile-details a { color: var(--ink); border-bottom: 1px solid var(--lake); }
+.profile-details a:hover { color: var(--lake-deep); }
 
 /* =========================================================
    通用栏目
    ========================================================= */
 .section { padding: 56px 0; position: relative; }
+/* 栏目之间不再画那道手绘笔触分隔，留白自然分开 */
 .section-heading { margin-bottom: 26px; }
 .section-heading h2 {
   font-family: var(--serif);
@@ -343,43 +426,101 @@ a:hover { color: #b87d4d; }
   align-items: center;
   gap: 12px;
 }
-/* 编辑感标记：每栏目换撞色，粗一点更有力量 */
+/* 手绘笔触标记：每栏换色，像蘸了颜料的点 */
 .section-heading h2::before {
   content: "";
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 50% 50% 50% 0;
   transform: rotate(-12deg);
-  background: var(--accent, var(--vermilion));
+  background: var(--accent, var(--lake));
   flex: 0 0 auto;
+  filter: url(#pencil-soft);
 }
+/* 油画刷下划线：抖动出徒手感 */
 .section-heading h2::after {
   content: "";
   flex: 0 0 auto;
-  width: 76px;
-  height: 8px;
-  border-radius: 8px;
-  background: var(--accent, var(--vermilion));
-  opacity: 0.6;
+  width: 84px;
+  height: 9px;
+  border-radius: 60% 40% 50% 55%;
+  background: var(--accent, var(--lake));
+  opacity: 0.62;
+  filter: url(#paint);
 }
 .works-notice { color: var(--ink-faint); font-size: 14px; margin: 8px 0 0; }
 
-/* 栏目强调色轮流：朱红 / 钴蓝 对撞，芥黄点到为止 */
-#profile      .section-heading h2 { --accent: var(--vermilion); }
-#experience   .section-heading h2 { --accent: var(--cobalt); }
-#projects     .section-heading h2 { --accent: var(--vermilion); }
-#skills       .section-heading h2 { --accent: var(--cobalt); }
-#portfolio    .section-heading h2 { --accent: var(--mustard); }
-#teaching     .section-heading h2 { --accent: var(--vermilion); }
-#publications .section-heading h2 { --accent: var(--cobalt); }
+/* 栏目强调色轮流：只在浅湖蓝的深浅两档之间切换，保持复古低饱和的统一感 */
+#profile      .section-heading h2 { --accent: var(--lake); }
+#experience   .section-heading h2 { --accent: var(--lake-deep); }
+#projects     .section-heading h2 { --accent: var(--lake); }
+#skills       .section-heading h2 { --accent: var(--lake-deep); }
+#interests    .section-heading h2 { --accent: var(--lake); }
+#portfolio    .section-heading h2 { --accent: var(--lake-deep); }
+#teaching     .section-heading h2 { --accent: var(--lake); }
+#publications .section-heading h2 { --accent: var(--lake-deep); }
 
-/* 作品区：整块钴蓝撞色面板（强对比，高级感） */
+/* =========================================================
+   作品区：统一米白纸面（与全站一致，不再用钴蓝撞色块）
+   ========================================================= */
 #portfolio {
-  background: var(--cobalt);
-  color: var(--paper);
+  background: none;
+  color: var(--ink);
+  padding: 56px 0;
 }
-#portfolio .section-heading h2 { color: var(--paper); }
-#portfolio .works-notice { color: rgba(255, 255, 255, 0.72); }
+#portfolio > .container { position: relative; z-index: 1; }
+#portfolio .section-heading h2 { color: var(--ink); }
+#portfolio .works-notice { color: var(--ink-faint); }
+
+/* =========================================================
+   兴趣爱好
+   与资料卡同一套纸卡语言，左描边 + 圆形手绘图标只在湖蓝深浅间轮换
+   ========================================================= */
+.interest-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+}
+.interest-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--lake);
+  border-radius: var(--radius);
+  padding: 18px 20px 20px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.interest-card:nth-child(2) { border-left-color: var(--lake-deep); }
+.interest-card:nth-child(3) { border-left-color: var(--lake-deep); }
+.interest-card:nth-child(4) { border-left-color: var(--lake); }
+.interest-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 32px rgba(120, 100, 78, 0.14);
+}
+.interest-ico {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-bottom: 12px;
+  color: var(--lake-deep);
+  background: rgba(134, 179, 194, 0.2);
+}
+.interest-ico svg { width: 22px; height: 22px; display: block; }
+.interest-card:nth-child(2) .interest-ico { color: var(--lake-deep); background: rgba(78, 127, 147, 0.14); }
+.interest-card:nth-child(3) .interest-ico { color: var(--lake-deep); background: rgba(78, 127, 147, 0.14); }
+.interest-card:nth-child(4) .interest-ico { color: var(--lake-deep); background: rgba(134, 179, 194, 0.2); }
+.interest-card h3 {
+  font-family: var(--serif);
+  font-size: 17px;
+  color: var(--ink);
+  margin: 0 0 6px;
+}
+.interest-card p { margin: 0; font-size: 14px; color: var(--ink-soft); }
 
 /* 内容卡（经历 / 科研 / 教学 / 成果 通用） */
 .experience-item,
@@ -405,8 +546,8 @@ a:hover { color: #b87d4d; }
 .experience-heading strong { font-size: 18px; color: var(--ink); }
 .experience-heading time {
   font-size: 13px;
-  color: var(--vermilion);
-  background: rgba(232, 85, 58, 0.14);
+  color: var(--lake-deep);
+  background: rgba(134, 179, 194, 0.22);
   padding: 3px 12px;
   border-radius: 999px;
 }
@@ -427,8 +568,8 @@ a:hover { color: #b87d4d; }
   font-family: var(--sans);
   font-size: 12px;
   letter-spacing: 1px;
-  color: var(--cobalt);
-  border: 1px solid var(--cobalt);
+  color: var(--lake-deep);
+  border: 1px solid var(--lake-deep);
   padding: 2px 10px;
   border-radius: 999px;
 }
@@ -438,7 +579,7 @@ a:hover { color: #b87d4d; }
 .skills-list li {
   background: var(--paper);
   border: 1px solid var(--line);
-  border-left: 4px solid var(--vermilion);
+  border-left: 4px solid var(--lake-deep);
   border-radius: 14px;
   padding: 14px 18px;
   box-shadow: var(--shadow-sm);
@@ -482,6 +623,35 @@ footer {
 .footer-inner a:hover { background: var(--paper); color: var(--ink); }
 
 /* =========================================================
+   手绘铅笔框：叠在各类卡片原有直线框上，抖动出徒手装裱感
+   ========================================================= */
+.profile-details > div,
+.interest-card,
+.experience-item,
+.research-item,
+.teaching-group,
+.publication-group,
+.work-card {
+  position: relative;
+}
+.profile-details > div::before,
+.interest-card::before,
+.experience-item::before,
+.research-item::before,
+.teaching-group::before,
+.publication-group::before,
+.work-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid var(--pencil);
+  border-radius: inherit;
+  opacity: 0.38;
+  filter: url(#pencil);
+  pointer-events: none;
+}
+
+/* =========================================================
    互动设计：滚动揭示 / 进度条 / 导航高亮 / 卡片光斑 / 悬浮按钮
    ========================================================= */
 /* 顶部滚动进度条 */
@@ -490,16 +660,12 @@ footer {
   top: 0; left: 0;
   height: 3px;
   width: 0;
-  background: var(--vermilion);
+  background: var(--lake-deep);
   z-index: 60;
   transition: width 0.1s linear;
 }
-/* 导航当前栏目高亮 */
-.site-header nav a.active {
-  background: var(--ink);
-  color: var(--paper);
-  box-shadow: var(--shadow-sm);
-}
+/* 导航当前栏目高亮：样式见上方「左侧竖排导航」 */
+.section[id], .book-cover[id] { scroll-margin-top: 28px; }
 /* 滚动揭示：仅在启用 JS 时先隐藏，保证无脚本也能正常阅读 */
 html.js .reveal {
   opacity: 0;
@@ -555,14 +721,49 @@ html.js .reveal.in {
   transform: none;
   pointer-events: auto;
 }
-.to-cover:hover { background: var(--vermilion); }
+.to-cover:hover { background: var(--lake-deep); }
 
 /* =========================================================
    响应式
    ========================================================= */
+/* 宽屏：左边留出导航板的位置，正文不会被压住 */
+@media (min-width: 1100px) {
+  body { padding-left: 162px; }
+  /* 封面按整屏水平居中，左侧导航不影响它的视觉中心 */
+  .book-cover { margin-left: -162px; }
+}
+
+/* 窄屏：导航板改成底部横条（同样淡色毛玻璃，可横向滑动） */
+@media (max-width: 1099px) {
+  .site-header {
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    transform: none;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+  .header-inner {
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 22px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .header-inner::-webkit-scrollbar { display: none; }
+  .brand { display: none; }
+  .site-header nav { flex-direction: row; gap: 6px; }
+  .site-header nav a { white-space: nowrap; padding: 7px 13px; }
+  .site-header nav a:hover { transform: none; }
+  body { padding-bottom: 76px; }
+  .to-cover { bottom: 88px; }
+}
+
 @media (max-width: 720px) {
   .book-cover { padding: 84px 20px 48px; min-height: 90vh; }
-  .header-inner { justify-content: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {

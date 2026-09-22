@@ -1,6 +1,6 @@
 /*
- * 项目 1 · 第 3 课 · 作品门户样式（已升级为韩系绘画风）
- * 保留网格布局；卡片视觉改为奶咖纸卡 + 柔色主题。
+ * 项目 1 · 第 3 课 · 作品门户样式（画廊装裱风）
+ * 卡片 = 奶油卡纸裱框 + 柔色画布 + 展签；样式保留，视觉更新。
  */
 
 /* 两列网格（桌面） */
@@ -13,12 +13,13 @@
   margin: 0;
 }
 
-/* 作品卡：纸感圆角卡 */
+/* 作品卡：奶油卡纸裱框（外围一圈 mat，里面是画布） */
 .work-card {
   overflow: hidden;
-  background: var(--paper, #fffdf9);
+  background: var(--mat, #fffdf8);
   border: 1px solid var(--line, #e7ddcf);
   border-radius: 26px;
+  padding: 14px;
   box-shadow: 0 12px 30px rgba(120, 100, 78, 0.10);
   transition: transform 220ms ease, box-shadow 220ms ease;
 }
@@ -28,12 +29,13 @@
   text-decoration: none;
 }
 
-/* 封面：柔色底 + 轻微内描边，营造手绘相框感 */
+/* 画布：柔色底 + 白色内框，像装裱后的画面 */
 .work-cover {
   display: block;
   aspect-ratio: 3 / 2;
   overflow: hidden;
   background: var(--tint, #edf1ea);
+  border-radius: 14px;
   position: relative;
 }
 .work-cover::after {
@@ -55,6 +57,25 @@
   transform: scale(1.05);
 }
 
+/* 空作品位：做成画廊展签（画作下方的说明牌） */
+.work-slot {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  display: inline-block;
+  white-space: nowrap;
+  font-family: "ChunkPrint", var(--sans, system-ui);
+  font-size: 11.5px;
+  letter-spacing: 2px;
+  color: var(--ink-soft, #847a6e);
+  background: rgba(255, 253, 248, 0.82);
+  border: 1px solid var(--line, #e7ddcf);
+  border-radius: 999px;
+  padding: 6px 16px;
+  box-shadow: 0 4px 12px rgba(120, 100, 78, 0.12);
+}
+
 .work-copy { padding: 20px 24px 24px; }
 .work-copy h3 {
   font-family: var(--serif, Georgia, serif);
@@ -71,11 +92,11 @@
   box-shadow: 0 20px 44px rgba(120, 100, 78, 0.16);
 }
 
-/* 每张作品一个柔色主题（样式丰富但不杂乱） */
-.work-blog         { --tint: #e7efe2; }   /* 鼠尾草 */
-.work-community    { --tint: #f4e3e0; }   /* 豆沙粉 */
-.work-greeting-card{ --tint: #e2eef0; }   /* 雾霾蓝 */
-.work-music-station{ --tint: #f6ecd9; }   /* 奶油黄 */
+/* 每张作品一个复古色主题：低饱和、带灰调，像旧印刷品（不再是糖果粉彩） */
+.work-blog         { --tint: #cfd6c6; }   /* 旧灰绿 */
+.work-community    { --tint: #ded0c6; }   /* 旧陶粉 */
+.work-greeting-card{ --tint: #c9d6dc; }   /* 浅湖蓝（呼应主点缀） */
+.work-music-station{ --tint: #e0d5b8; }   /* 旧纸黄 */
 
 /* 小屏：单列 */
 @media (max-width: 640px) {

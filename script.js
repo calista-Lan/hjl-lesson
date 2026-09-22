@@ -19,7 +19,7 @@
 
   /* 2. 滚动揭示动画（封面在首屏，不参与揭示，保留自身 0.25s 倾斜过渡） */
   var revealEls = document.querySelectorAll(
-    ".section, .work-card, .glass-panel, .profile-details > div, .experience-item, .research-item, .teaching-group, .publication-group"
+    ".section, .work-card, .glass-panel, .interest-card, .profile-details > div, .experience-item, .research-item, .teaching-group, .publication-group"
   );
   revealEls.forEach(function (el) { el.classList.add("reveal"); });
   function revealDone(el) {
@@ -257,7 +257,7 @@
 
     startDanmaku();
 
-    /* ---- 表单：表情、字数、校验、提交 ---- */
+    /* ---- 表单：字数、校验、提交 ---- */
     function countChars() {
       if (mbCount) mbCount.textContent = String(mbText.value.length);
     }
@@ -268,14 +268,6 @@
         mbError.hidden = true;
       }
     });
-    Array.prototype.forEach.call(mbForm.querySelectorAll(".mb-emoji button"), function (b) {
-      b.addEventListener("click", function () {
-        mbText.value += b.getAttribute("data-emoji");
-        mbText.focus();
-        countChars();
-      });
-    });
-
     mbForm.addEventListener("submit", function (ev) {
       ev.preventDefault();
       var text = mbText.value.trim();
