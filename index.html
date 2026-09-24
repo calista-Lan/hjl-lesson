@@ -3,56 +3,51 @@
  <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1" name="viewport"/>
-  <meta content="noindex, nofollow" name="robots"/>
-  <meta content="课程练习：个人介绍、技能与作品门户。" name="description"/>
+  <!-- 可被搜索引擎收录：不再写 noindex, nofollow -->
+  <meta content="黄锦澜的个人主页：广东科学技术职业学院大模型应用开发专业在读，正在学习 HTML5、CSS3 与 JavaScript，用每一次练习记录成长。" name="description"/>
+  <meta content="黄锦澜" name="author"/>
   <title>
-   我的个人主页
+   黄锦澜 · 个人主页
   </title>
   <link href="assets/favicon.svg" rel="icon" type="image/svg+xml"/>
   <!-- CSS 负责颜色、字体、布局；defer 让 JavaScript 在 HTML 解析完成后执行。 -->
   <link href="styles.css" rel="stylesheet"/>
-  <!-- 第 3 课只新增这一张样式表，不覆盖前两课的 styles.css。 -->
+  <!-- 第 3 课只新增这一张样式表：装帧与手作元素（藏书票、印章、胶带、修正带、圈注）。 -->
   <link href="lesson-03-task.css" rel="stylesheet"/>
-  <!-- 留言板区块样式（钴蓝毛玻璃面板） -->
+  <!-- 留言板区块样式：借书卡 / 便签 / 页边批注 -->
   <link href="message-board.css" rel="stylesheet"/>
- 
+  <link href="draft-canvas.css" rel="stylesheet"/>
  </head>
  <body>
-  <!-- 手绘滤镜：pencil = 铅笔抖动描边；paint = 油画笔触洇染。供 CSS filter: url(#…) 引用 -->
+  <!-- 手绘滤镜：pencil = 铅笔抖动描边；ink = 洇墨。供 CSS filter: url(#…) 引用 -->
   <svg aria-hidden="true" focusable="false" height="0" style="position:absolute" width="0">
    <filter id="pencil">
     <feTurbulence baseFrequency="0.016" numOctaves="3" result="n" seed="7" type="fractalNoise"/>
     <feDisplacementMap in="SourceGraphic" in2="n" scale="3.4" xChannelSelector="R" yChannelSelector="G"/>
    </filter>
-   <filter id="pencil-soft">
-    <feTurbulence baseFrequency="0.01" numOctaves="2" result="n" seed="3" type="fractalNoise"/>
-    <feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/>
-   </filter>
-   <filter id="paint">
-    <feTurbulence baseFrequency="0.012 0.018" numOctaves="2" result="n" seed="11" type="fractalNoise"/>
-    <feDisplacementMap in="SourceGraphic" in2="n" scale="16" xChannelSelector="R" yChannelSelector="G"/>
+   <filter id="ink">
+    <feTurbulence baseFrequency="0.05" numOctaves="2" result="n" seed="5" type="fractalNoise"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="1.2" xChannelSelector="R" yChannelSelector="G"/>
    </filter>
   </svg>
   <a class="skip-link" href="#main">
    跳到正文
   </a>
-  <div aria-hidden="true" class="scroll-progress">
+  <!-- 书签绳：随阅读进度向右抽出的一根红线（宽度由 script.js 计算） -->
+  <div aria-hidden="true" class="bookmark-rail">
   </div>
   <header class="site-header">
-   <div class="container header-inner">
+   <div class="header-inner">
     <a class="brand" href="#about">
      我的主页
     </a>
     <!-- href="#栏目ID" 是原生锚点：即使不加载 JavaScript，也能跳到对应栏目。 -->
     <nav aria-label="主导航">
-     <a href="#about">
+     <a href="#profile">
       关于
      </a>
      <a href="#experience">
       经历
-     </a>
-     <a href="#projects">
-      科研
      </a>
      <a href="#skills">
       技能
@@ -60,14 +55,11 @@
      <a href="#interests">
       兴趣
      </a>
-     <a href="#portfolio">
-      作品
-     </a>
      <a href="#teaching">
-      教学
+      实践
      </a>
      <a href="#publications">
-      成果
+      记录
      </a>
      <a href="#message">
       留言
@@ -76,159 +68,201 @@
    </div>
   </header>
   <main id="main">
-   <!-- HTML 练习：修改姓名、研究方向、照片路径和联系方式。 -->
-   <!-- 首页 = 书封面：只放封面信息，详细资料在内页 -->
+   <!-- HTML 练习：修改姓名、专业、照片路径和联系方式。 -->
+   <!-- 首页 = 旧书封面 / 扉页：书名、作者、出版年、藏书章，详细资料在内页 -->
    <section class="book-cover" id="about">
-    <div class="cover-frame">
-     <img alt="黄锦澜照片" class="cover-avatar" height="92" src="tx.jpg" width="92"/>
-     <span class="cover-kicker">
-      PORTFOLIO · 作品集
-     </span>
-     <h1 class="cover-title">
-      黄锦澜
-     </h1>
-     <p class="cover-pinyin">
-      huang jin lan
-     </p>
-     <p class="cover-role">
-      大模型应用开发专业 · 前端开发学习者
-     </p>
-     <p class="cover-tag">
-      把每一次练习，<br/>都画进自己的网页里
-     </p>
-     <a class="cover-scroll" href="#profile">
-      向下翻开内页 ↓
-     </a>
-     <span aria-hidden="true" class="cover-sign">
-      — 黄锦澜
-     </span>
+      <!-- 纸上草稿：Canvas 纸面层（纯装饰，不承载文字；样式 draft-canvas.css，脚本 draft-canvas.js） -->
+      <div class="hjl-canvas-wrap" data-hjl-draft="">
+        <div class="hjl-canvas" aria-hidden="true"><canvas></canvas></div>
+        <p class="hjl-canvas-ui">
+          <label class="hjl-canvas-file">用音频驱动<input class="hjl-canvas-input" type="file" accept="audio/*"/></label>
+          <button class="hjl-canvas-stop" type="button" hidden="">停</button>
+          <span class="hjl-canvas-state" role="status"></span>
+        </p>
+      </div>
+    <!-- data-tilt 是纸片的初始倾角（度），鼠标经过时会在此基础上微微摆动 -->
+    <div class="cover-sheet" data-tilt="-0.4">
+     <div class="cover-main">
+      <p class="cover-kicker">
+       PORTFOLIO
+      </p>
+      <h1 class="cover-title">
+       黄锦澜
+      </h1>
+      <!-- 这行拼音由 script.js 用打字机效果逐字打出 -->
+      <p class="cover-pinyin" data-typewriter="">
+       huang jin lan
+      </p>
+      <p class="cover-role">
+       大模型应用开发专业 · 前端开发学习者
+      </p>
+      <dl class="cover-imprint">
+       <div>
+        <dt>
+         作者
+        </dt>
+        <dd>
+         黄锦澜
+        </dd>
+       </div>
+       <div>
+        <dt>
+         出版
+        </dt>
+        <dd>
+         珠海 · 2026
+        </dd>
+       </div>
+       <div>
+        <dt>
+         版次
+        </dt>
+        <dd>
+         第 1 版 · 课程练习
+        </dd>
+       </div>
+      </dl>
+     </div>
+     <!-- 贴页照片：方形、去圆角，用胶带斜贴在纸面上 -->
+     <figure class="cover-photo taped">
+      <img alt="黄锦澜的照片" height="140" src="tx.jpg" width="140"/>
+      <figcaption>
+       图 1 · 著者像
+      </figcaption>
+     </figure>
+     <div class="cover-foot">
+      <!-- 藏书票：老式贴纸，内框 + EX LIBRIS -->
+      <div class="exlibris">
+       EX LIBRIS
+       <b>
+        黄锦澜
+       </b>
+      </div>
+      <!-- 藏书章：点一下会重新盖一次（动画见 lesson-03-task.css） -->
+      <button class="stamp" type="button">
+       藏 书
+      </button>
+      <a class="cover-scroll" href="#profile">
+       翻开内页 ↓
+      </a>
+     </div>
     </div>
-    <p class="cover-plate">
-     黄锦澜 · 作品集 · PORTFOLIO · 2026
-    </p>
    </section>
-
-   <!-- 内页：关于我（原首页的详细资料移到这里） -->
+   <!-- 内页：关于我（扉页背面 · 作者简介） -->
    <section class="section" id="profile">
     <div class="container">
-     <p class="inside-lead">
-      <span>
-      </span>
-      内 页
-      <span>
-      </span>
-     </p>
      <header class="section-heading">
+      <p aria-hidden="true" class="running-head">
+       黄锦澜 · 个人主页
+      </p>
       <h2>
        关于我
       </h2>
      </header>
-     <div class="profile-details">
-      <div>
-       <span class="phone">
-        学习方向
-       </span>
-       <p>
-        HTML5、CSS3、JavaScript，正在学习 Git、数据库与网站部署。
-       </p>
-      </div>
-      <div>
-       <span class="phone">
-        学习阶段
-       </span>
-       <p>
-        在校学习
-       </p>
-      </div>
-      <div>
-       <span class="phone">
-        所在城市
-       </span>
-       <p>
-        珠海
-       </p>
-      </div>
-      <div>
-       <span class="phone">
-        联系
-       </span>
-       <p>
-        18927846419 <br/>
-        mdusbsssb@qq.com
-       </p>
-      </div>
-      <div>
-       <span class="phone">
-        学校地址
-       </span>
-       <p>
-        <a href="https://j.map.baidu.com/e6/IQd" target="_blank" rel="noopener">广东省珠海市金湾区</a>
-       </p>
-      </div>
-     </div>
+     <dl class="profile-details">
+      <dt>
+       学习方向
+      </dt>
+      <dd>
+       HTML5、CSS3、JavaScript，正在学习 Git、数据库与网站部署。
+      </dd>
+      <dt>
+       学习阶段
+      </dt>
+      <dd>
+       在校学习
+      </dd>
+      <dt>
+       所在城市
+      </dt>
+      <dd>
+       珠海
+      </dd>
+      <dt>
+       联系
+      </dt>
+      <dd>
+       18927846419
+       <br/>
+       mdusbsssb@qq.com
+      </dd>
+      <dt>
+       学校地址
+      </dt>
+      <dd>
+       <a href="https://j.map.baidu.com/e6/IQd" rel="noopener" target="_blank">
+        广东省珠海市金湾区
+       </a>
+      </dd>
+     </dl>
+     <!-- 页边批注：手写在红色边距线外侧 -->
+     <p class="margin-note">
+      2026
+      <span class="dot">
+       ·
+      </span>
+      珠海
+     </p>
     </div>
    </section>
-   <!-- 每个栏目复用 section → container → 标题/内容 的结构，统一由 CSS 控制样式。 -->
+   <!-- 教育与工作经历 = 目录 / 章节列表，右侧是页码 -->
    <section class="section" id="experience">
     <div class="container">
      <header class="section-heading">
+      <p aria-hidden="true" class="running-head">
+       黄锦澜 · 个人主页
+      </p>
       <h2>
        教育与工作经历
       </h2>
      </header>
-     <div class="section-content">
-      <!-- TASK-HTML：复制 experience-item 可增加一条自己的经历。 -->
-      <div class="experience-item">
-       <p class="experience-heading">
-        <strong>
-         广东科学技术职业学院 · 大模型应用开发专业
-        </strong>
-        <time>
-         在读
-        </time>
-       </p>
-       <p class="experience-detail">
+     <ol class="toc">
+      <li>
+       <span class="chapter">
+        广东科学技术职业学院 · 大模型应用开发专业
+       </span>
+       <time>
+        在读
+       </time>
+       <span class="dots">
+       </span>
+       <span class="page">
+        p.1
+       </span>
+       <p class="detail">
         学习网页开发，用项目记录成长。
        </p>
-      </div>
-     </div>
+      </li>
+     </ol>
     </div>
    </section>
-   <section class="section" id="projects">
-    <div class="container">
-     <header class="section-heading">
-      <h2>
-       项目经历
-      </h2>
-     </header>
-     <div class="section-content">
-      <article class="research-item">
-       <h3>
-        <time>
-         课程练习
-        </time>
-        个人主页
-       </h3>
-       <p>
-        项目内容：制作自己的网页，展示资料与作品，记录修改、测试与发布过程。
-       </p>
-      </article>
-     </div>
-    </div>
-   </section>
+   <!-- 技能与实践 = 横线草稿页（蓝线 + 红色边距线 + 手写大字 + 铅笔圈注） -->
    <section class="section" id="skills">
     <div class="container">
      <header class="section-heading">
+      <p aria-hidden="true" class="running-head">
+       黄锦澜 · 个人主页
+      </p>
       <h2>
        技能与实践
       </h2>
      </header>
      <div class="section-content">
+      <!-- 修正带：贴在草稿页上的一条白胶带，鼠标移上去会翘起来 -->
+      <span aria-hidden="true" class="whiteout">
+      </span>
+      <!-- TASK-HTML：复制一个 li 就能增加一条自己的技能。 -->
       <ul class="skills-list">
        <li>
-        <strong>
-         网页内容
-        </strong>
+        <span class="loop-wrap">
+         <strong>
+          网页内容
+         </strong>
+         <!-- 铅笔圈注：pathLength="1" 让描边长度归一，进入视口后被 script.js 描出来 -->
+         <svg aria-hidden="true" class="pencil-loop" preserveAspectRatio="none" viewBox="0 0 100 40">
+          <ellipse cx="50" cy="20" fill="none" pathLength="1" rx="47" ry="17" stroke="#7a746a" stroke-width="1.6"/>
+         </svg>
+        </span>
         HTML5 结构、图片、链接。
        </li>
        <li>
@@ -247,18 +281,21 @@
      </div>
     </div>
    </section>
-   <!-- 兴趣爱好：纸卡网格，图标 + 一句话（内容可自行替换） -->
+   <!-- 兴趣爱好 = 速写本：一排便利贴，可以横向拖动，也可以用左右方向键翻 -->
    <section class="section" id="interests">
     <div class="container">
      <header class="section-heading">
+      <p aria-hidden="true" class="running-head">
+       黄锦澜 · 个人主页
+      </p>
       <h2>
        兴趣爱好
       </h2>
      </header>
-     <ul class="interest-list">
-      <li class="interest-card">
-       <span aria-hidden="true" class="interest-ico">
-        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewBox="0 0 24 24">
+     <ul aria-label="兴趣爱好速写本：可左右拖动，或用方向键浏览" class="sketchbook" data-sketchbook="" tabindex="0">
+      <li class="note taped">
+       <span aria-hidden="true" class="note-ico">
+        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
          <path d="M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.5 16.2z"/>
          <path d="M15.4 6.2l2.4 2.4"/>
         </svg>
@@ -270,9 +307,9 @@
         熬夜追剧一时爽,一直追一直爽。
        </p>
       </li>
-      <li class="interest-card">
-       <span aria-hidden="true" class="interest-ico">
-        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewBox="0 0 24 24">
+      <li class="note taped">
+       <span aria-hidden="true" class="note-ico">
+        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
          <path d="M9 17.5V5.6l10-2v11.9"/>
          <ellipse cx="6.6" cy="17.8" rx="2.6" ry="2.2"/>
          <ellipse cx="16.6" cy="15.8" rx="2.6" ry="2.2"/>
@@ -285,23 +322,32 @@
         人类的生命因音乐而恒长。
        </p>
       </li>
-      <li class="interest-card">
-       <span aria-hidden="true" class="interest-ico">
-        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewBox="0 0 24 24">
-         <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h2l1.3-2h6.4L16.5 6h2A2.5 2.5 0 0 1 21 8.5v9A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5z"/>
-         <circle cx="12" cy="13" r="3.6"/>
-        </svg>
-       </span>
-       <h3>
-        摄影
-       </h3>
-       <p>
-        “记录是为了抵抗遗忘”
-       </p>
+      <!-- 摄影这张贴纸是一扇门：整张可点，通向另一本册子《拍照手札》 -->
+      <li class="note note--link taped">
+       <a class="note-hit" href="https://calista-lan.github.io/photography-Lan/" rel="noopener noreferrer" target="_blank">
+        <span aria-hidden="true" class="note-ico">
+         <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
+          <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h2l1.3-2h6.4L16.5 6h2A2.5 2.5 0 0 1 21 8.5v9A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5z"/>
+          <circle cx="12" cy="13" r="3.6"/>
+         </svg>
+        </span>
+        <h3>
+         摄影
+        </h3>
+        <p>
+         “记录是为了抵抗遗忘”
+        </p>
+        <span class="note-flag">
+         另有一本《拍照手札》
+         <span class="sr-only">
+          （在新窗口打开）
+         </span>
+        </span>
+       </a>
       </li>
-      <li class="interest-card">
-       <span aria-hidden="true" class="interest-ico">
-        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewBox="0 0 24 24">
+      <li class="note taped">
+       <span aria-hidden="true" class="note-ico">
+        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
          <path d="M5.2 9.4 4 4.2l4.4 2.4"/>
          <path d="M18.8 9.4 20 4.2l-4.4 2.4"/>
          <path d="M12 6.6a6.6 6.6 0 0 1 6.6 6.6c0 3.3-3 5.6-6.6 5.6s-6.6-2.3-6.6-5.6A6.6 6.6 0 0 1 12 6.6z"/>
@@ -319,261 +365,245 @@
      </ul>
     </div>
    </section>
-   <section class="section" id="portfolio">
-    <div class="container">
-     <header class="section-heading">
-      <h2>
-       作品门户
-      </h2>
-      <p class="works-notice">
-       作品还在整理中，先把位置留好，之后换成自己的项目。
-      </p>
-     </header>
-     <!-- 卡片样式保留，示例作品内容已清空；有自己的作品时按下面对齐的结构补 a / img / h3 / p 即可。 -->
-     <ol class="portfolio-list">
-      <li class="work-card work-blog">
-       <div class="work-cover">
-        <span class="work-slot">
-         作品位 · 待补充
-        </span>
-       </div>
-      </li>
-      <li class="work-card work-community">
-       <div class="work-cover">
-        <span class="work-slot">
-         作品位 · 待补充
-        </span>
-       </div>
-      </li>
-      <li class="work-card work-greeting-card">
-       <div class="work-cover">
-        <span class="work-slot">
-         作品位 · 待补充
-        </span>
-       </div>
-      </li>
-      <li class="work-card work-music-station">
-       <div class="work-cover">
-        <span class="work-slot">
-         作品位 · 待补充
-        </span>
-       </div>
-      </li>
-     </ol>
-    </div>
-   </section>
+   <!-- 学习与实践 = 章节正文 -->
    <section class="section" id="teaching">
     <div class="container">
      <header class="section-heading">
+      <p aria-hidden="true" class="running-head">
+       黄锦澜 · 个人主页
+      </p>
       <h2>
        学习与实践
       </h2>
      </header>
-     <div class="section-content">
-      <div class="teaching-group">
-       <h3>
-        本学期目标
-       </h3>
-       <ol>
-        <li>
-         每次课完成一个可运行的小改动。
-        </li>
-        <li>
-         能解释自己修改的 HTML、CSS 和 JavaScript。
-        </li>
-        <li>
-         使用 Git 记录版本，让作品能被别人访问。
-        </li>
-       </ol>
-      </div>
+     <div class="chapter">
+      <h3>
+       本学期目标
+      </h3>
+      <ol>
+       <li>
+        每次课完成一个可运行的小改动。
+       </li>
+       <li>
+        能解释自己修改的 HTML、CSS 和 JavaScript。
+       </li>
+       <li>
+        使用 Git 记录版本，让作品能被别人访问。
+       </li>
+      </ol>
      </div>
+     <p class="imprint-line">
+      <span>
+       本课练习 · 第 1 版
+      </span>
+      <span>
+       2026
+      </span>
+     </p>
     </div>
    </section>
+   <!-- 学习记录 = 书眉 + 脚注 -->
    <section class="section" id="publications">
     <div class="container">
      <header class="section-heading">
+      <p aria-hidden="true" class="running-head">
+       黄锦澜 · 个人主页
+      </p>
       <h2>
        学习记录
       </h2>
      </header>
-     <div class="section-content">
-      <div class="publication-group">
-       <h3>
-        我的记录
-       </h3>
-       <ol class="references">
-        <li>
-         完成第一张个人主页。
-        </li>
-        <li>
-         后续在这里补充自己的真实成果。
-        </li>
-       </ol>
-      </div>
+     <div class="chapter">
+      <h3>
+       我的记录
+      </h3>
+      <ol>
+       <li>
+        完成第一张个人主页。
+       </li>
+       <li>
+        后续在这里补充自己的真实成果。
+       </li>
+      </ol>
      </div>
+     <p class="imprint-line">
+      <span>
+       本课练习 · 第 1 版
+      </span>
+      <span>
+       2026
+      </span>
+     </p>
     </div>
    </section>
-   <!-- 留言板：钴蓝底 + 毛玻璃气泡面板（参考小红书「米饼」的作品） -->
+   <!-- 留言板：借书卡登记 + 页边便签 + 铅笔批注 -->
    <section class="section message-section" id="message">
     <div class="container">
-     <div class="message-board">
-      <!-- 左：招呼语 + 手绘涂鸦 + 照片 -->
-      <div class="mb-hello">
-       <p class="mb-hi">
-        Hi!
-       </p>
-       <p class="mb-callme">
-        CALL ME
-       </p>
-       <svg aria-hidden="true" class="mb-doodle" viewBox="0 0 230 54">
-        <path d="M8 40c26-30 52-32 74-12" fill="none" stroke="#8fd694" stroke-linecap="round" stroke-width="3.5"/>
-        <path d="M222 44c-24-34-52-36-78-14" fill="none" stroke="#8fd694" stroke-linecap="round" stroke-width="3.5"/>
-        <path d="M108 12c5-7 14-8 20-3" fill="none" stroke="#8fd694" stroke-linecap="round" stroke-width="3.5"/>
-       </svg>
-       <svg aria-hidden="true" class="mb-apple" viewBox="0 0 124 130">
-        <path d="M62 34c-3-9-1-17 5-23 5 7 5 17 1 24z" fill="#6b9c4f"/>
-        <path d="M70 22c10-13 28-13 34-6-6 14-23 18-34 10z" fill="#8fc176"/>
-        <path d="M58 36C40 18 10 26 8 56c-2 32 18 62 38 62 8 0 10-6 16-6s8 6 16 6c20 0 40-30 38-62-2-30-32-38-50-20z" fill="#e0483c"/>
-        <ellipse cx="40" cy="62" fill="#f4796c" opacity="0.55" rx="9" ry="13" transform="rotate(-22 40 62)"/>
-       </svg>
-       <figure class="mb-photo">
-        <img alt="黄锦澜照片" height="290" src="tx.jpg" width="232"/>
-       </figure>
-      </div>
-      <!-- 右：两块毛玻璃面板 -->
-      <div class="mb-panels">
-       <section aria-labelledby="mb-contact-title" class="glass-panel mb-contact">
-        <h3 class="mb-panel-title" id="mb-contact-title">
-         联系我
-        </h3>
-        <ul class="mb-contact-list">
-         <li>
-          <span class="mb-ico">
-           <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24">
-            <path d="M6 3h4l2 5-3 2a12 12 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2z"/>
-           </svg>
-          </span>
-          <span>
-           <a href="tel:18927846419">18927846419</a>
-          </span>
-         </li>
-         <li>
-          <span class="mb-ico">
-           <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewBox="0 0 24 24">
-            <path d="M12 2.5c3.1 0 5.4 2.3 5.4 5.2 0 1.5.6 2.5 1.5 3.7.9 1.3 1.6 2.7 1.6 4.2 0 1-.5 1.9-1.4 1.9-.7 0-1.2-.6-1.6-1.4-.4 1.4-1.5 2.3-2.6 2.3h-.2c-.6.9-1.4 1.4-2.3 1.4s-1.7-.5-2.3-1.4h-.2c-1.1 0-2.2-.9-2.6-2.3-.4.8-.9 1.4-1.6 1.4-.9 0-1.4-.9-1.4-1.9 0-1.5.7-2.9 1.6-4.2.9-1.2 1.5-2.2 1.5-3.7 0-2.9 2.3-5.2 5.4-5.2z"/>
-            <path d="M9.6 8.4h.01M14.4 8.4h.01" stroke-width="2.2"/>
-           </svg>
-          </span>
-          <span>
-           QQ · 2975415609
-          </span>
-         </li>
-         <li>
-          <span class="mb-ico">
-           <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24">
-            <rect height="14" rx="2.5" width="18" x="3" y="5"/>
-            <path d="M3.8 6.8 12 12.8l8.2-6"/>
-           </svg>
-          </span>
-          <span>
-           <a href="mailto:mdusbsssb@qq.com">mdusbsssb@qq.com</a>
-          </span>
-         </li>
-         <li>
-          <span class="mb-ico">
-           <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24">
-            <path d="M9.2 4.4C5.2 4.4 2 7 2 10.2c0 1.8 1 3.4 2.6 4.5L4 17.4l2.9-1.5c.7.2 1.5.3 2.3.3"/>
-            <path d="M14.8 8.6c3.9 0 7.2 2.4 7.2 5.4 0 1.7-1 3.2-2.5 4.2l.5 2.6-2.8-1.4c-.7.2-1.5.3-2.4.3-3.9 0-7.2-2.4-7.2-5.4s3.3-5.7 7.2-5.7z"/>
-           </svg>
-          </span>
-          <span>
-           微信 · Cshinipapa
-          </span>
-         </li>
-         <li>
-          <span class="mb-ico">
-           <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24">
-            <path d="M4 10.6 12 4l8 6.6V20a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/>
-           </svg>
-          </span>
-          <span>
-           <a href="https://j.map.baidu.com/e6/IQd" rel="noopener" target="_blank">广东省珠海市金湾区</a>
-          </span>
-         </li>
-        </ul>
-       </section>
-       <section aria-labelledby="mb-leave-title" class="glass-panel mb-leave">
-        <h3 class="mb-panel-title" id="mb-leave-title">
-         留言板
-        </h3>
-        <form class="mb-form" novalidate="">
-         <label class="sr-only" for="mb-message">
-          留言内容
-         </label>
-         <textarea id="mb-message" maxlength="200" name="message" placeholder="Start Message......" required=""></textarea>
-         <label class="sr-only" for="mb-contact">
-          你的联系方式
-         </label>
-         <input id="mb-contact" maxlength="40" name="contact" placeholder="Your contact details?"/>
-         <p class="mb-error" hidden="">
-          先写点内容再贴上来吧～
-         </p>
-         <div class="mb-form-foot">
-          <span class="mb-count">
-           <span data-count="">
-            0
-           </span>
-           / 200
-          </span>
-          <button class="mb-submit" type="submit">
-           贴上留言 ✦
-          </button>
-         </div>
-        </form>
-       </section>
-      </div>
-     </div>
-     <!-- 留言弹幕：横向滚动、不显示留言人信息 -->
-     <section aria-labelledby="mb-list-title" class="glass-panel mb-list-panel">
-      <h3 class="mb-panel-title" id="mb-list-title">
-       留言弹幕
-       <small>
-        悬停暂停 · 滚动浏览
-       </small>
-      </h3>
-      <div aria-hidden="true" class="mb-danmaku">
-      </div>
-      <ol class="mb-stream" data-msg-stream="">
-      </ol>
-      <p class="mb-reset-row">
-       <button class="mb-reset" type="button">
-        清空我的留言
-       </button>
+     <header class="section-heading">
+      <p aria-hidden="true" class="running-head">
+       黄锦澜 · 个人主页
       </p>
-     </section>
+      <h2>
+       留言板
+      </h2>
+     </header>
+     <!-- 借书卡：每条留言是一行登记记录 -->
+     <div class="ledger">
+      <p class="ledger-title" id="ledger-title">
+       借书卡 · 来访登记
+      </p>
+      <div aria-hidden="true" class="ledger-head">
+       <span>
+        日期
+       </span>
+       <span>
+        留言
+       </span>
+      </div>
+      <ol aria-labelledby="ledger-title" class="ledger-rows" data-ledger="">
+      </ol>
+      <!-- 空状态：一条留言都还没有时显示 -->
+      <p class="ledger-empty" data-ledger-empty="" hidden="">
+       还没有人留言 —— 第一行由你来写。
+      </p>
+     </div>
+     <div class="mb-grid">
+      <!-- 便签：贴在页边的一张黄纸，写留言用 -->
+      <div class="mb-note taped">
+       <h3>
+        写一张留言
+       </h3>
+       <form class="mb-form" novalidate="">
+        <label for="mb-message">
+         留言内容
+        </label>
+        <textarea id="mb-message" maxlength="200" name="message" placeholder="想说点什么？" required=""></textarea>
+        <label for="mb-contact">
+         你的联系方式（选填，不会公开显示）
+        </label>
+        <input id="mb-contact" maxlength="40" name="contact" placeholder="邮箱 / QQ / 微信"/>
+        <p class="mb-error" hidden="">
+         先写点内容再贴上来吧～
+        </p>
+        <div class="mb-form-foot">
+         <span class="mb-count">
+          <span data-count="">
+           0
+          </span>
+          / 200
+         </span>
+         <button class="mb-submit" type="submit">
+          贴到借书卡上
+         </button>
+        </div>
+        <p class="mb-reset-row">
+         <button class="mb-reset" type="button">
+          清空我贴的留言
+         </button>
+        </p>
+       </form>
+      </div>
+      <!-- 页边批注：铅笔手写的联系方式 -->
+      <aside class="mb-side">
+       <h3>
+        也可以直接找我
+       </h3>
+       <ul>
+        <li>
+         <a href="tel:18927846419">
+          18927846419
+         </a>
+        </li>
+        <li>
+         QQ
+         <span class="dot">
+          ·
+         </span>
+         2975415609
+        </li>
+        <li>
+         <a href="mailto:mdusbsssb@qq.com">
+          mdusbsssb@qq.com
+         </a>
+        </li>
+        <li>
+         微信
+         <span class="dot">
+          ·
+         </span>
+         Cshinipapa
+        </li>
+        <li>
+         <a href="https://j.map.baidu.com/e6/IQd" rel="noopener" target="_blank">
+          广东省珠海市金湾区
+         </a>
+        </li>
+       </ul>
+      </aside>
+     </div>
+     <noscript>
+      <p class="noscript-note">
+       留言板需要 JavaScript 才能登记留言；其余内容不加载脚本也能正常阅读。
+      </p>
+     </noscript>
     </div>
    </section>
   </main>
+  <!-- 页脚 = 版权页 / 印刷信息 -->
   <footer>
-   <div class="container footer-inner">
-    <a href="#about">
-     回到顶部
-    </a>
-    <a href="#portfolio">
-     作品门户
-    </a>
-    <a href="#message">
-     给我留言
-    </a>
+   <div class="colophon">
+    <dl class="colophon-grid">
+     <div>
+      <dt>
+       书名
+      </dt>
+      <dd>
+       黄锦澜 · 个人主页
+      </dd>
+     </div>
+     <div>
+      <dt>
+       作者
+      </dt>
+      <dd>
+       黄锦澜
+      </dd>
+     </div>
+     <div>
+      <dt>
+       出版
+      </dt>
+      <dd>
+       珠海 · 2026
+      </dd>
+     </div>
+     <div>
+      <dt>
+       版次
+      </dt>
+      <dd>
+       第 1 版 · 课程练习
+      </dd>
+     </div>
+    </dl>
+    <p class="colophon-links">
+     <a href="#about">
+      回到封面
+     </a>
+     <a href="#message">
+      给我留言
+     </a>
+    </p>
    </div>
   </footer>
-  <button aria-label="回到封面" class="to-cover" type="button">
-   ↑
+  <button class="to-cover" type="button">
+   ↑ 回到封面
   </button>
   <div aria-live="polite" class="mb-toast" role="status">
   </div>
   <script defer="" src="script.js">
   </script>
+  <script src="draft-canvas.js"></script>
  </body>
 </html>
 

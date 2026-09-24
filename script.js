@@ -1,4 +1,5 @@
-/* 互动设计：进度条 / 滚动揭示 / 导航高亮 / 封面 3D 倾斜 / 卡片 3D+光斑 / 回到封面 */
+/* 互动设计：书签绳进度 / 翻页揭示 / 索引书签高亮 / 纸片微倾 / 打字机
+   / 铅笔圈注 / 速写本拖动 / 藏书章盖印 / 借书卡留言 */
 (function () {
   "use strict";
   var root = document.documentElement;
@@ -6,145 +7,279 @@
 
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* 1. 顶部滚动进度条 */
-  var bar = document.querySelector(".scroll-progress");
+  /* ---------- 1. 书签绳：随阅读进度向右抽出的一根红线 ---------- */
+  var rail = document.querySelector(".bookmark-rail");
   function onScroll() {
     var doc = document.documentElement;
     var max = doc.scrollHeight - doc.clientHeight;
     var p = max > 0 ? (doc.scrollTop || document.body.scrollTop) / max : 0;
-    if (bar) bar.style.width = (p * 100).toFixed(2) + "%";
+    if (rail) rail.style.width = (p * 100).toFixed(2) + "%";
   }
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 
-  /* 2. 滚动揭示动画（封面在首屏，不参与揭示，保留自身 0.25s 倾斜过渡） */
-  var revealEls = document.querySelectorAll(
-    ".section, .work-card, .glass-panel, .interest-card, .profile-details > div, .experience-item, .research-item, .teaching-group, .publication-group"
-  );
-  revealEls.forEach(function (el) { el.classList.add("reveal"); });
+  /* ---------- 2. 翻页揭示：进入视口的书页从右侧翻入，铅笔圈注同时被描出来 ---------- */
+  var revealEls = document.querySelectorAll(".section > .container");
+  Array.prototype.forEach.call(revealEls, function (el) { el.classList.add("reveal"); });
   function revealDone(el) {
-    // 揭示结束后移除 reveal，让元素恢复自身更跟手的过渡（倾斜/光斑）
+    // 揭示结束后移除 reveal，让元素恢复自身更跟手的过渡（纸片微倾等）
     el.classList.remove("reveal");
   }
-  if ("IntersectionObserver" in window && !reduce) {
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) {
-          e.target.classList.add("in");
-          setTimeout(function () { revealDone(e.target); }, 800);
-          io.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
-    revealEls.forEach(function (el) { io.observe(el); });
-  } else {
-    revealEls.forEach(function (el) { el.classList.add("in"); revealDone(el); });
+  function drawLoops(el) {
+    // 圈注：给 SVG 描边加 .drawn，stroke-dashoffset 从 1 走到 0，像被铅笔画出来
+    Array.prototype.forEach.call(el.querySelectorAll(".pencil-loop"), function (s) {
+      s.classList.add("drawn");
+    });
+  }
+  /* 显示一张书页：加 .in 触发翻页过渡，同时把圈注描出来 */
+  function show(el) {
+    el.classList.add("in");
+    drawLoops(el);
+    setTimeout(function () { revealDone(el); }, 900);
+  }
+  /* 把当前视口里的书页显示出来（自己用 getBoundingClientRect 算，不依赖观察器） */
+  function revealInView() {
+    Array.prototype.forEach.call(revealEls, function (el) {
+      if (el.classList.contains("in")) return;
+      var r = el.getBoundingClientRect();
+      if (r.top < window.innerHeight * 0.92 && r.bottom > 0) show(el);
+    });
+  }
+  /* 兜底：把还没显示的书页一次性全显示出来 */
+  function revealAll() {
+    Array.prototype.forEach.call(revealEls, function (el) { show(el); });
   }
 
-  /* 3. 导航当前栏目高亮（scrollspy） */
+  if (reduce) {
+    revealAll();
+  } else {
+    var ioFired = false;
+    if ("IntersectionObserver" in window) {
+      var io = new IntersectionObserver(function (entries) {
+        ioFired = true;
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            show(e.target);
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+      Array.prototype.forEach.call(revealEls, function (el) { io.observe(el); });
+    }
+    // 兜底 1：滚动时自己算一遍，观察器不可靠也照样能显示
+    var ticking = false;
+    window.addEventListener("scroll", function () {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(function () { revealInView(); ticking = false; });
+    }, { passive: true });
+    // 兜底 2：进场 2.6 秒后，先把视口里的显示出来；若观察器一次都没回过话、
+    // 且一张书页都没显示，说明它没工作，就全部显示（正常浏览器不会走到这一步）
+    setTimeout(function () {
+      revealInView();
+      if (!ioFired && !document.querySelectorAll(".section > .container.in").length) revealAll();
+    }, 2600);
+    revealInView();
+  }
+  // 打印时全部显示（不然打印出来是白纸）
+  if (window.matchMedia) {
+    var mq = window.matchMedia("print");
+    var onPrint = function () { if (mq.matches) revealAll(); };
+    if (mq.addEventListener) mq.addEventListener("change", onPrint);
+    else if (mq.addListener) mq.addListener(onPrint);
+  }
+
+  /* ---------- 3. 索引书签：当前栏目那枚标签抽出来 ---------- */
   var navLinks = Array.prototype.slice.call(
     document.querySelectorAll(".site-header nav a")
   );
   var sections = navLinks
     .map(function (a) { return document.querySelector(a.getAttribute("href")); })
     .filter(Boolean);
-  if ("IntersectionObserver" in window && sections.length) {
-    var spy = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) {
-          var id = e.target.id;
-          navLinks.forEach(function (a) {
-            a.classList.toggle("active", a.getAttribute("href") === "#" + id);
-          });
-        }
-      });
-    }, { threshold: 0.5 });
-    sections.forEach(function (s) { spy.observe(s); });
+  function setActive(id) {
+    navLinks.forEach(function (a) {
+      a.classList.toggle("active", a.getAttribute("href") === "#" + id);
+    });
+  }
+  /* 用滚动位置判断当前栏目（比观察器可靠，任何环境都能算） */
+  function spy() {
+    if (!sections.length) return;
+    var line = window.innerHeight * 0.35;
+    var current = sections[0];
+    sections.forEach(function (s) {
+      if (s.getBoundingClientRect().top <= line) current = s;
+    });
+    setActive(current.id);
+  }
+  window.addEventListener("scroll", spy, { passive: true });
+  window.addEventListener("resize", spy);
+  spy();
+  // 点一下立刻点亮，不等滚动（原生锚点负责跳转）
+  navLinks.forEach(function (a) {
+    a.addEventListener("click", function () {
+      setActive(a.getAttribute("href").slice(1));
+    });
+  });
+
+  /* ---------- 3b. 翻页：按栏目顺序给每张书页加一行「上一页 / 下一页」 ---------- */
+  if (navLinks.length) {
+    navLinks.forEach(function (a, i) {
+      var sec = document.querySelector(a.getAttribute("href"));
+      if (!sec) return;
+      var box = sec.querySelector(".container");
+      if (!box) return;
+      var nav = document.createElement("nav");
+      nav.className = "folio-nav";
+      nav.setAttribute("aria-label", "翻页");
+      var prev = navLinks[i - 1];
+      var next = navLinks[i + 1];
+      if (prev) {
+        var pl = document.createElement("a");
+        pl.className = "folio-prev";
+        pl.href = prev.getAttribute("href");
+        pl.textContent = "← " + prev.textContent.trim();
+        nav.appendChild(pl);
+      } else {
+        var ph = document.createElement("span");
+        ph.textContent = "封面之后";
+        nav.appendChild(ph);
+      }
+      if (next) {
+        var nl = document.createElement("a");
+        nl.className = "folio-next";
+        nl.href = next.getAttribute("href");
+        nl.textContent = next.textContent.trim() + " →";
+        nav.appendChild(nl);
+      } else {
+        var nh = document.createElement("span");
+        nh.textContent = "全书终";
+        nav.appendChild(nh);
+      }
+      box.appendChild(nav);
+    });
   }
 
-  /* 4. 封面随鼠标 3D 倾斜 */
-  var cover = document.querySelector(".book-cover");
-  var frame = document.querySelector(".cover-frame");
-  if (cover && frame && !reduce) {
-    cover.addEventListener("pointermove", function (ev) {
-      var r = cover.getBoundingClientRect();
+  /* ---------- 4. 纸片微倾：鼠标在纸面上时，纸片跟着轻轻歪一点（不超过 1 度） ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll("[data-tilt]"), function (el) {
+    var base = parseFloat(el.getAttribute("data-tilt")) || 0;
+    el.addEventListener("pointermove", function (ev) {
+      if (reduce) return;
+      var r = el.getBoundingClientRect();
       var x = (ev.clientX - r.left) / r.width - 0.5;
       var y = (ev.clientY - r.top) / r.height - 0.5;
-      frame.style.transform =
-        "rotateY(" + (x * 8).toFixed(2) + "deg) rotateX(" + (-y * 8).toFixed(2) + "deg)";
+      el.style.transform =
+        "rotate(" + (base + x * 0.8).toFixed(2) + "deg) translate(" +
+        (x * 4).toFixed(1) + "px," + (y * 2.5).toFixed(1) + "px)";
     });
-    cover.addEventListener("pointerleave", function () {
-      frame.style.transform = "";
+    el.addEventListener("pointerleave", function () { el.style.transform = ""; });
+  });
+
+  /* ---------- 5. 打字机：封面的拼音逐字打出 ---------- */
+  var tw = document.querySelector("[data-typewriter]");
+  if (tw) {
+    var full = tw.textContent.trim();
+    if (!reduce && full) {
+      // 先把完整文本交给屏幕阅读器，避免读到半截的拼音
+      tw.setAttribute("aria-label", full);
+      tw.textContent = "";
+      tw.classList.add("typing");
+      var i = 0;
+      var timer = setInterval(function () {
+        tw.textContent = full.slice(0, ++i);
+        if (i >= full.length) {
+          clearInterval(timer);
+          setTimeout(function () { tw.classList.remove("typing"); }, 1400);
+        }
+      }, 90);
+    }
+  }
+
+  /* ---------- 6. 速写本：按住拖动横向翻看，也能用左右方向键 ---------- */
+  var sb = document.querySelector("[data-sketchbook]");
+  if (sb) {
+    var dragging = false;
+    var startX = 0;
+    var startLeft = 0;
+    var movedX = 0;                    // 这次按住一共横向挪了多远
+    sb.addEventListener("pointerdown", function (ev) {
+      if (ev.pointerType === "mouse" && ev.button !== 0) return;
+      dragging = true;
+      movedX = 0;
+      startX = ev.clientX;
+      startLeft = sb.scrollLeft;
+      sb.classList.add("dragging");
+    });
+    window.addEventListener("pointermove", function (ev) {
+      if (!dragging) return;
+      var dx = ev.clientX - startX;
+      if (Math.abs(dx) > movedX) movedX = Math.abs(dx);
+      sb.scrollLeft = startLeft - dx;
+    });
+    /* 拖完速写本松手时浏览器还会补一次 click，
+       挪动超过 8px 就当是翻页，把这次点击吃掉 —— 不然翻便利贴会误跳到摄影站 */
+    sb.addEventListener("click", function (ev) {
+      if (movedX > 8) {
+        ev.preventDefault();
+        ev.stopPropagation();
+      }
+    }, true);
+    window.addEventListener("pointerup", function () {
+      dragging = false;
+      sb.classList.remove("dragging");
+    });
+    window.addEventListener("pointercancel", function () {
+      dragging = false;
+      sb.classList.remove("dragging");
+    });
+    // 键盘：方向键每次翻一张便利贴
+    sb.addEventListener("keydown", function (ev) {
+      var step = 214;
+      if (ev.key === "ArrowRight") {
+        sb.scrollBy({ left: step, behavior: reduce ? "auto" : "smooth" });
+        ev.preventDefault();
+      } else if (ev.key === "ArrowLeft") {
+        sb.scrollBy({ left: -step, behavior: reduce ? "auto" : "smooth" });
+        ev.preventDefault();
+      }
     });
   }
 
-  /* 5. 作品卡：3D 倾斜 + 跟随光斑 */
-  if (!reduce) {
-    document.querySelectorAll(".work-card").forEach(function (card) {
-      card.addEventListener("pointermove", function (ev) {
-        var r = card.getBoundingClientRect();
-        var px = (ev.clientX - r.left) / r.width;
-        var py = (ev.clientY - r.top) / r.height;
-        card.style.setProperty("--mx", (px * 100).toFixed(1) + "%");
-        card.style.setProperty("--my", (py * 100).toFixed(1) + "%");
-        card.style.transform =
-          "translateY(-6px) rotateY(" + ((px - 0.5) * 8).toFixed(2) +
-          "deg) rotateX(" + ((0.5 - py) * 8).toFixed(2) + "deg)";
-      });
-      card.addEventListener("pointerleave", function () {
-        card.style.transform = "";
-      });
+  /* ---------- 7. 藏书章：点一下重新盖一次 ---------- */
+  var stamp = document.querySelector(".stamp");
+  if (stamp) {
+    stamp.addEventListener("click", function () {
+      stamp.classList.remove("stamping");
+      void stamp.offsetWidth; // 强制重排，让动画能连续触发
+      stamp.classList.add("stamping");
     });
   }
 
-  /* 6. 回到封面悬浮按钮 */
+  /* ---------- 8. 回到封面 ---------- */
   var toCover = document.querySelector(".to-cover");
   if (toCover) {
     window.addEventListener("scroll", function () {
       if (window.scrollY > window.innerHeight * 0.8) toCover.classList.add("show");
       else toCover.classList.remove("show");
     }, { passive: true });
-    toCover.addEventListener("click", function (e) {
-      e.preventDefault();
+    toCover.addEventListener("click", function () {
       var target = document.querySelector("#about");
       if (target) target.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
     });
   }
 
-  /* 7. 联系我面板：轻微 3D 倾斜 */
-  var contactPanel = document.querySelector(".mb-contact");
-  if (contactPanel && !reduce) {
-    contactPanel.addEventListener("pointermove", function (ev) {
-      var r = contactPanel.getBoundingClientRect();
-      var px = (ev.clientX - r.left) / r.width;
-      var py = (ev.clientY - r.top) / r.height;
-      contactPanel.style.transform =
-        "rotateY(" + ((px - 0.5) * 7).toFixed(2) + "deg) rotateX(" +
-        ((0.5 - py) * 7).toFixed(2) + "deg)";
-    });
-    contactPanel.addEventListener("pointerleave", function () {
-      contactPanel.style.transform = "";
-    });
-  }
-
-  /* 8. 留言板：提交 / 本地保存 / 弹幕呈现 / 表情 / 字数 / 提示条 */
+  /* ---------- 9. 留言板 = 借书卡：登记 / 本地保存 / 清空 / 空状态 ---------- */
   var mbForm = document.querySelector(".mb-form");
   if (mbForm) {
     var mbText = mbForm.querySelector("#mb-message");
     var mbContact = mbForm.querySelector("#mb-contact");
     var mbCount = mbForm.querySelector("[data-count]");
     var mbError = mbForm.querySelector(".mb-error");
+    var mbNote = document.querySelector(".mb-note");
     var mbToast = document.querySelector(".mb-toast");
-    var mbDanmaku = document.querySelector(".mb-danmaku");
-    var mbStream = document.querySelector("[data-msg-stream]");
+    var ledger = document.querySelector("[data-ledger]");
+    var ledgerEmpty = document.querySelector("[data-ledger-empty]");
     var mbReset = document.querySelector(".mb-reset");
     var STORE_KEY = "hjl-message-board-v1";
-    /* 预置示例留言（只取文字，不显示留言人） */
-    var SAMPLE_TEXT = [
-      "主页的配色好舒服，封面那段手写题词特别喜欢 ✨",
-      "路过看看～作品卡片的悬停效果挺有意思的 🌿",
-      "结构清楚，继续把内页内容补完整，加油。"
-    ];
     var toastTimer;
 
     function load() {
@@ -175,92 +310,48 @@
     }
 
     var mine = load();
-    /* 弹幕内容池：示例 + 我贴的（都只显示文字，不显示留言人） */
-    var pool = SAMPLE_TEXT.concat(mine.map(function (m) { return m.text; }));
-    var poolIndex = 0;
-    var lane = 0;
-    var spawnTimer = null;
-    var danmakuPaused = false;
 
-    /* 给屏幕阅读器 / 减弱动效用的纯文本流（同样不显示留言人） */
-    function fillStream() {
-      if (!mbStream) return;
-      mbStream.textContent = "";
-      pool.forEach(function (txt) {
+    /* 借书卡：只登记真实来访者写的，不放任何示例数据 */
+    function render(freshText) {
+      if (!ledger) return;
+      ledger.textContent = "";
+      var rows = [];
+      mine.forEach(function (m) {
+        rows.push({ text: m.text, date: m.time || "—", kind: "mine" });
+      });
+      rows.forEach(function (r) {
         var li = document.createElement("li");
-        li.textContent = txt;
-        mbStream.appendChild(li);
+        li.className = "ledger-row";
+        li.setAttribute("data-kind", r.kind);
+        var d = document.createElement("span");
+        d.className = "ledger-date";
+        d.textContent = r.date;
+        var t = document.createElement("span");
+        t.className = "ledger-text";
+        t.textContent = r.text;                 // 用 textContent 渲染，防 XSS
+        li.appendChild(d);
+        li.appendChild(t);
+        ledger.appendChild(li);
       });
-    }
-
-    /* 生成一条弹幕：随机一条轨道，飞完即移除 */
-    function spawnBullet(text, isMe) {
-      if (!mbDanmaku || reduce) return;
-      var b = document.createElement("span");
-      b.className = "mb-bullet" + (isMe ? " me" : "");
-      b.textContent = text;
-      var rows = 5;
-      var h = mbDanmaku.clientHeight || 248;
-      var laneH = h / rows;
-      var top = Math.round((lane % rows) * laneH + (laneH - 36) / 2);
-      if (top < 4) top = 4;
-      b.style.top = top + "px";
-      lane++;
-      mbDanmaku.appendChild(b);
-      var W = mbDanmaku.clientWidth;
-      var B = b.offsetWidth || 120;
-      b.style.setProperty("--dist", "-" + (W + B + 12) + "px");
-      var dur = Math.max(9, Math.min(16, 8 + text.length / 6));
-      b.style.setProperty("--dur", dur.toFixed(1) + "s");
-      b.addEventListener("animationend", function () {
-        if (b.parentNode) b.parentNode.removeChild(b);
-      });
-    }
-
-    function tick() {
-      if (danmakuPaused || !mbDanmaku || pool.length === 0) return;
-      spawnBullet(pool[poolIndex % pool.length], false);
-      poolIndex++;
-    }
-
-    function startDanmaku() {
-      fillStream();
-      if (reduce || !mbDanmaku) return;
-      /* 先错开撒几条，开场不空荡 */
-      for (var i = 0; i < 3 && pool.length; i++) {
-        (function (k) {
-          setTimeout(function () { spawnBullet(pool[k % pool.length], false); }, k * 1400);
-        })(i);
+      if (ledgerEmpty) ledgerEmpty.hidden = rows.length > 0;
+      // 刚贴的那一行做一次落下动画
+      if (freshText) {
+        var first = ledger.querySelector(".ledger-row");
+        if (first) first.classList.add("fresh");
       }
-      spawnTimer = setInterval(tick, 1800);
     }
 
-    if (mbDanmaku) {
-      mbDanmaku.addEventListener("pointerenter", function () { danmakuPaused = true; });
-      mbDanmaku.addEventListener("pointerleave", function () { danmakuPaused = false; });
-    }
-
-    if (mbReset) {
-      mbReset.addEventListener("click", function () {
-        mine = [];
-        save(mine);
-        pool = SAMPLE_TEXT.slice();
-        poolIndex = 0;
-        lane = 0;
-        fillStream();
-        if (mbDanmaku) mbDanmaku.textContent = "";
-        if (spawnTimer) { clearInterval(spawnTimer); spawnTimer = null; }
-        startDanmaku();
-        toast("已清空我贴的留言");
-      });
-    }
-
-    startDanmaku();
-
-    /* ---- 表单：字数、校验、提交 ---- */
     function countChars() {
-      if (mbCount) mbCount.textContent = String(mbText.value.length);
+      if (!mbCount) return;
+      var n = mbText.value.length;
+      mbCount.textContent = String(n);
+      // 快写满 200 字时把计数器变成砖红，给个提醒
+      mbCount.classList.toggle("near", n > 170);
     }
+
+    render();
+    countChars();
+
     mbText.addEventListener("input", function () {
       countChars();
       if (mbText.value.trim()) {
@@ -268,29 +359,41 @@
         mbError.hidden = true;
       }
     });
+
     mbForm.addEventListener("submit", function (ev) {
       ev.preventDefault();
       var text = mbText.value.trim();
       if (!text) {
         mbError.hidden = false;
         mbText.classList.add("invalid");
+        if (mbNote) {
+          mbNote.classList.remove("shake");
+          void mbNote.offsetWidth;
+          mbNote.classList.add("shake");
+        }
         mbText.focus();
         toast("留言还是空的哦～");
-        setTimeout(function () { mbText.classList.remove("invalid"); }, 500);
+        setTimeout(function () { mbText.classList.remove("invalid"); }, 600);
         return;
       }
-      var fresh = { id: "m" + Date.now(), name: "匿名同学", text: text, time: stamp() };
-      mine.unshift(fresh);
+      mine.unshift({ text: text, contact: mbContact.value.trim(), time: stamp() });
       save(mine);
-      /* 内容池刷新：新留言之后会循环飞过，自己这条先高亮闪一下 */
-      pool = SAMPLE_TEXT.concat(mine.map(function (m) { return m.text; }));
-      fillStream();
-      spawnBullet(text, true);
+      render(true);
       mbForm.reset();
       countChars();
       mbError.hidden = true;
-      toast("留言已飞过，谢谢你 ✦");
+      toast("已登记到借书卡上，谢谢你");
     });
+
+    /* 清空：清掉本机登记的全部留言 */
+    if (mbReset) {
+      mbReset.addEventListener("click", function () {
+        mine = [];
+        save(mine);
+        render();
+        toast("借书卡已清空");
+      });
+    }
 
     /* Ctrl / Cmd + Enter 快捷提交 */
     mbText.addEventListener("keydown", function (ev) {

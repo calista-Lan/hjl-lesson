@@ -1,0 +1,113 @@
+/* ==========================================================================
+   纸上草稿 · draft-canvas.css
+   --------------------------------------------------------------------------
+   只作用于 .hjl-canvas-wrap / .hjl-canvas-* 这几个带前缀的元素，
+   不改动站内任何既有选择器，也不新增全局变量（颜色一律用 var(名字, 兜底值)）。
+   布局：整层绝对定位铺满所在的 #about 区块，pointer-events:none，
+   所以不会吃掉任何点击、不会挡住滚动、不会干扰现有的封面内容。
+   ========================================================================== */
+
+.hjl-canvas-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 0;                /* 永远压在正文之下 */
+  pointer-events: none;      /* 完全不接收指针事件：点击/滚动全交给页面 */
+}
+
+.hjl-canvas {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.hjl-canvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 提层：让站里现有的封面纸片压在草稿层上面。
+   用兄弟选择器写在“新文件”里，这样 styles.css 一行都不用改。 */
+.hjl-canvas-wrap ~ .cover-sheet {
+  position: relative;
+  z-index: 1;
+}
+
+/* 音频入口：一枚很淡的铅字小按钮，只占右下角一点点 */
+.hjl-canvas-ui {
+  position: absolute;
+  right: 18px;
+  bottom: 14px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: auto;      /* 只有这一小块接收点击 */
+  font-family: var(--font-type, "Courier New", "Noto Serif SC", monospace);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink-faded, #7d7466);
+}
+
+.hjl-canvas-file {
+  position: relative;
+  padding-bottom: 1px;
+  border-bottom: 1px dashed var(--rule, rgba(42, 38, 34, 0.16));
+  cursor: pointer;
+}
+
+.hjl-canvas-file:hover {
+  color: var(--accent, #8c3b2e);
+  border-bottom-color: var(--accent, #8c3b2e);
+}
+
+/* 真正的 file input 透明铺在文字上：点文字就是点它，键盘也能聚焦 */
+.hjl-canvas-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.hjl-canvas-file:focus-within {
+  outline: 1px solid var(--accent, #8c3b2e);
+  outline-offset: 3px;
+}
+
+.hjl-canvas-stop {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-bottom: 1px dashed var(--rule, rgba(42, 38, 34, 0.16));
+  padding: 0 0 1px;
+  cursor: pointer;
+}
+
+.hjl-canvas-stop:hover {
+  color: var(--accent, #8c3b2e);
+}
+
+.hjl-canvas-state {
+  min-width: 3em;
+}
+
+/* 手机：按钮再收一点，别挡住封面下方的内容 */
+@media (max-width: 700px) {
+  .hjl-canvas-ui {
+    right: 12px;
+    bottom: 10px;
+    font-size: 11px;
+    gap: 8px;
+  }
+}
+
+/* 打印时不出现：纸上草稿只是屏幕上的事 */
+@media print {
+  .hjl-canvas-wrap {
+    display: none;
+  }
+}

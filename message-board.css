@@ -1,15 +1,8 @@
 /* =========================================================
-   留言板 · 旧纸上的毛玻璃面板（参考小红书「米饼」的作品）
-   设计要点：旧纸米白底 + 毛玻璃圆角面板 + 气泡尾巴 + 手写招呼语
-   点缀色统一为浅湖蓝
+   留言板 · 借书卡 / 便签 / 页边批注
+   不用毛玻璃、不用气泡面板：留言是一条条登记在借书卡上的记录，
+   表单是一张贴在页边的便签，联系方式是写在页边的铅笔批注。
    ========================================================= */
-
-/* 泡泡展示字（项目自带，之前没用上） */
-@font-face {
-  font-family: "Dumb3D";
-  src: url("3Dumb.ttf") format("truetype");
-  font-display: swap;
-}
 
 /* 屏幕阅读器可见、视觉隐藏 */
 .sr-only {
@@ -25,377 +18,241 @@
 }
 
 /* =========================================================
-   区块外壳：与全站统一的米白纸面
-   （原本是钴蓝撞色块，现改为米白，呼应整体简约基调）
+   借书卡
    ========================================================= */
-.message-section {
-  padding: 88px 0 96px;
-  color: var(--ink);
-  position: relative;
-}
-.message-section > .container { position: relative; z-index: 1; }
-/* 留言区顶部的笔触分隔用亮眼蓝，呼应全站点缀 */
-#message { --accent: var(--lake); }
-
-/* 两栏：左边招呼 + 照片，右边玻璃面板 */
-.message-board {
-  display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-  gap: 34px;
-  align-items: start;
-  margin-bottom: 30px;
-}
-
-/* =========================================================
-   左栏：Hi! CALL ME
-   ========================================================= */
-.mb-hello {
-  position: sticky;
-  top: 96px;
-  padding-top: 6px;
-}
-.mb-hi {
-  font-family: "Dumb3D", "ChunkPrint", var(--sans);
-  font-size: clamp(52px, 8vw, 88px);
-  line-height: 0.9;
-  margin: 0 0 4px;
-  color: var(--ink);
-  text-shadow: 0 5px 0 rgba(120, 100, 78, 0.16);
-}
-.mb-callme {
-  font-family: "Dumb3D", "ChunkPrint", var(--sans);
-  font-size: clamp(34px, 5.4vw, 58px);
-  line-height: 1.1;
-  letter-spacing: 6px;
-  margin: 0;
-  color: var(--ink);
-  text-shadow: 0 5px 0 rgba(120, 100, 78, 0.16);
-}
-.mb-doodle {
-  display: block;
-  width: min(230px, 78%);
-  height: auto;
-  margin: 14px 0 4px -6px;
-}
-/* 苹果：参考图里的红苹果，悬停轻轻晃一下 */
-.mb-apple {
-  width: clamp(84px, 20vw, 124px);
-  height: auto;
-  margin: 4px 0 10px 42%;
-  transform-origin: 50% 100%;
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.mb-hello:hover .mb-apple { transform: rotate(-10deg) translateY(-6px); }
-
-/* 照片：圆顶相框 + 手作微倾 */
-.mb-photo {
-  margin: 18px 0 0;
-  width: min(232px, 74%);
-  aspect-ratio: 4 / 5;
-  border-radius: 120px 120px 28px 28px;
-  overflow: hidden;
-  border: 4px solid var(--paper);
-  box-shadow: 0 22px 42px rgba(120, 100, 78, 0.22);
-  transform: rotate(-2deg);
-  transition: transform 0.35s ease;
-  background: var(--bg-soft);
-}
-.mb-photo:hover { transform: rotate(0deg) scale(1.02); }
-.mb-photo img { width: 100%; height: 100%; object-fit: cover; }
-
-/* =========================================================
-   右栏：毛玻璃面板（气泡造型）
-   ========================================================= */
-.mb-panels { display: grid; gap: 22px; }
-.glass-panel {
-  position: relative;
-  background: rgba(255, 255, 255, 0.66);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  border-radius: 30px;
-  padding: 26px 30px 30px;
-  backdrop-filter: blur(14px) saturate(130%);
-  -webkit-backdrop-filter: blur(14px) saturate(130%);
-  box-shadow:
-    0 20px 44px rgba(120, 100, 78, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
-}
-.glass-panel:hover {
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow:
-    0 26px 52px rgba(120, 100, 78, 0.2),
-    inset 0 1px 0 #fff;
-}
-/* 气泡尾巴：指向左边的招呼语（两块拼出来，接缝无痕） */
-.glass-panel::before {
-  content: "";
-  position: absolute;
-  left: -2px;
-  top: 47px;
-  width: 13px;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.66);
-  pointer-events: none;
-}
-.glass-panel::after {
-  content: "";
-  position: absolute;
-  left: -10px;
-  top: 47px;
-  width: 20px;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.66);
-  border-left: 1px solid rgba(255, 255, 255, 0.9);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.9);
-  border-radius: 0 0 0 4px;
-  transform: rotate(45deg);
-  pointer-events: none;
-}
-/* 悬停时面板变亮，尾巴跟着一起变，免得接缝露馅 */
-.glass-panel:hover::before,
-.glass-panel:hover::after { background: rgba(255, 255, 255, 0.78); }
-
-.mb-panel-title {
-  font-family: "BrushWide", "TeaHand", var(--serif);
-  font-weight: 400;
-  font-size: clamp(26px, 3.4vw, 34px);
-  line-height: 1.3;
-  color: var(--ink);
-  margin: 0 0 16px;
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.mb-panel-title small {
-  font-family: "ChunkPrint", var(--sans);
-  font-size: 13px;
-  letter-spacing: 1.5px;
-  color: var(--ink-soft);
-}
-
-/* =========================================================
-   联系我
-   ========================================================= */
-.mb-contact { transform-style: preserve-3d; transition: transform 0.25s ease; }
-.mb-contact-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
-.mb-contact-list li {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 9px 12px;
-  border-radius: 14px;
-  font-size: 15px;
-  color: var(--ink);
-  transition: background 0.2s ease, transform 0.2s ease;
-}
-.mb-contact-list li:hover {
-  background: rgba(47, 40, 32, 0.06);
-  transform: translateX(5px);
-}
-.mb-ico {
-  flex: 0 0 auto;
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  border-radius: 11px;
+.ledger {
+  border: 1px solid var(--ink-faded);
+  border-radius: var(--radius);
   background: var(--paper);
-  border: 1px solid var(--line);
-  color: var(--lake-deep);
 }
-.mb-ico svg { width: 19px; height: 19px; display: block; }
-.mb-contact-list a { color: var(--ink); border-bottom: 1px dashed var(--ink-faint); }
-.mb-contact-list a:hover { color: var(--lake-deep); border-bottom-color: var(--lake-deep); }
+.ledger-title {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  letter-spacing: 0.16em;
+  color: var(--ink-light);
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--paper-deep);
+  border-bottom: 1px solid var(--ink-faded);
+}
+/* 表头：日期 / 留言 两栏，打字机体 */
+.ledger-head {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: 12px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--ink-faded);
+  font-family: var(--font-type);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--ink-faded);
+}
+.ledger-rows { list-style: none; margin: 0; padding: 0; }
+.ledger-row {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: 12px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--blue-line);
+  align-items: baseline;
+}
+.ledger-row:last-child { border-bottom: 0; }
+.ledger-row:hover { background: rgba(42, 38, 34, 0.03); }
+/* 刚贴上的一行：从上落下来 */
+.ledger-row.fresh { animation: rowIn 0.5s ease; }
+@keyframes rowIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: none; }
+}
+.ledger-date {
+  font-family: var(--font-type);
+  font-size: 11.5px;
+  color: var(--ink-light);
+  white-space: nowrap;
+}
+/* 我贴的留言：日期盖成红色小戳 */
+.ledger-row[data-kind="mine"] .ledger-date {
+  display: inline-block;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 1px;
+  padding: 0 6px;
+  transform: rotate(-1.2deg);
+}
+.ledger-text {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.ledger-empty {
+  margin: 0;
+  padding: 20px 14px;
+  text-align: center;
+  font-family: var(--font-serif);
+  font-size: 14px;
+  color: var(--ink-faded);
+}
+
+/* 便签表单 + 页边批注 */
+.mb-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+  gap: 28px;
+  margin-top: 26px;
+  align-items: start;
+}
 
 /* =========================================================
-   留言板表单
+   便签：贴在页边的一张黄纸
    ========================================================= */
-.mb-form { display: grid; gap: 14px; }
+.mb-note {
+  position: relative;
+  background: var(--note);
+  border-radius: var(--radius);
+  padding: 26px 22px 20px;
+  transform: rotate(-1deg);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.mb-note:focus-within {
+  transform: rotate(0deg) translateY(-4px);
+  box-shadow: var(--shadow);
+}
+.mb-note h3 {
+  font-family: var(--font-hand);
+  font-weight: 400;
+  font-size: 22px;
+  margin: 0 0 10px;
+  color: var(--ink);
+}
+.mb-form { display: grid; gap: 12px; }
+.mb-form label {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  color: var(--ink-light);
+}
 .mb-form textarea,
 .mb-form input {
   width: 100%;
-  font: inherit;
-  font-size: 15px;
+  font-family: var(--font-hand);
+  font-size: 19px;
+  line-height: 1.6;
   color: var(--ink);
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  border-radius: 22px;
-  padding: 16px 20px;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  padding: 6px 2px;
+  transition: border-color 0.2s ease;
 }
-.mb-form textarea {
-  min-height: 150px;
-  line-height: 1.75;
-  resize: vertical;
-}
-.mb-form input { border-radius: 999px; padding: 13px 20px; }
-.mb-form textarea::placeholder,
-.mb-form input::placeholder { color: var(--ink-faint); }
+.mb-form textarea { min-height: 76px; resize: vertical; }
 .mb-form textarea:focus,
 .mb-form input:focus {
   outline: none;
-  background: #fff;
-  border-color: var(--lake-deep);
-  box-shadow: 0 0 0 4px rgba(78, 127, 147, 0.18);
+  border-bottom-color: var(--accent);
 }
-/* 校验失败：抖一下 */
-.mb-form textarea.invalid { animation: mbShake 0.4s ease; border-color: var(--warn); }
+.mb-form textarea::placeholder,
+.mb-form input::placeholder { color: var(--ink-faded); font-family: var(--font-serif); font-size: 14px; }
+/* 校验失败：整张便签抖一下 */
+.mb-form textarea.invalid { border-bottom-color: var(--accent); }
+.mb-note.shake { animation: mbShake 0.4s ease; }
 @keyframes mbShake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-7px); }
-  50% { transform: translateX(6px); }
-  75% { transform: translateX(-3px); }
+  0%, 100% { transform: rotate(-1deg) translateX(0); }
+  25% { transform: rotate(-1deg) translateX(-6px); }
+  50% { transform: rotate(-1deg) translateX(5px); }
+  75% { transform: rotate(-1deg) translateX(-3px); }
 }
-.mb-error {
-  margin: 0;
-  font-size: 13px;
-  color: var(--warn);
-}
+.mb-error { margin: 0; font-size: 13px; color: var(--accent); }
 
 .mb-form-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
+  margin-top: 4px;
 }
-.mb-count {
-  font-family: "ChunkPrint", var(--sans);
-  font-size: 14px;
-  letter-spacing: 1px;
-  color: var(--ink-soft);
-}
+.mb-count { font-family: var(--font-type); font-size: 12px; color: var(--ink-faded); transition: color 0.2s ease; }
+/* 字数快写满时变砖红提醒 */
+.mb-count.near { color: var(--accent); }
+/* 提交按钮做成一枚小印章 */
 .mb-submit {
-  font: inherit;
+  font-family: var(--font-serif);
   font-size: 15px;
+  letter-spacing: 0.12em;
   cursor: pointer;
-  color: #fff;
-  background: var(--lake-deep);
-  border: none;
-  border-radius: 999px;
-  padding: 12px 28px;
-  box-shadow: 0 12px 24px rgba(78, 127, 147, 0.26);
-  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
-}
-.mb-submit:hover { transform: translateY(-2px); background: #3d6b7e; }
-.mb-submit:active { transform: translateY(0) scale(0.98); }
-
-/* =========================================================
-   留言弹幕：简约横向滚动，不显示留言人信息
-   ========================================================= */
-.mb-danmaku {
-  position: relative;
-  height: 248px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid var(--line);
-  overflow: hidden;
-}
-/* 手绘铅笔框（叠在直线边上的徒手感） */
-.mb-danmaku::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border: 1.5px solid var(--pencil);
-  border-radius: inherit;
-  opacity: 0.4;
-  filter: url(#pencil);
-  pointer-events: none;
-  z-index: 2;
-}
-.mb-bullet {
-  position: absolute;
-  left: 100%;
-  top: 0;
-  white-space: nowrap;
-  font-size: 16px;
-  line-height: 1;
-  color: var(--ink);
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 9px 18px;
-  will-change: transform;
-  animation: mb-fly var(--dur, 12s) linear forwards;
-  pointer-events: none;
-}
-/* 自己刚贴的留言：浅湖蓝高亮，闪一下 */
-.mb-bullet.me {
-  background: rgba(134, 179, 194, 0.3);
-  border-color: rgba(78, 127, 147, 0.55);
-  font-weight: 600;
-}
-@keyframes mb-fly {
-  from { transform: translateX(0); }
-  to { transform: translateX(var(--dist, -120vw)); }
-}
-/* 鼠标移上去整条弹幕暂停，方便看清 */
-.mb-danmaku:hover .mb-bullet { animation-play-state: paused; }
-
-/* 减弱动效：退化为纵向纯文本流（同样不显示留言人） */
-.mb-stream {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-@media (prefers-reduced-motion: reduce) {
-  .mb-danmaku { display: none; }
-  .mb-stream {
-    position: static;
-    width: auto;
-    height: auto;
-    overflow: visible;
-    clip: auto;
-    white-space: normal;
-    display: block;
-    max-height: 248px;
-    overflow-y: auto;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    color: var(--ink);
-    font-size: 15px;
-    line-height: 2;
-  }
-  .mb-stream li {
-    padding: 3px 4px;
-    border-bottom: 1px dashed rgba(33, 28, 23, 0.14);
-  }
-}
-
-/* 清空按钮（小字、低调） */
-.mb-reset-row { margin: 14px 0 0; text-align: right; }
-.mb-reset {
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-  color: var(--ink-soft);
+  color: var(--stamp);
   background: none;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 6px 16px;
-  transition: background 0.2s ease, color 0.2s ease;
+  border: 2px solid var(--stamp);
+  border-radius: var(--radius);
+  padding: 7px 16px;
+  transform: rotate(-1.5deg);
+  opacity: 0.9;
+  transition: transform 0.25s ease, opacity 0.25s ease;
 }
-.mb-reset:hover { background: rgba(47, 40, 32, 0.06); color: var(--ink); }
+.mb-submit:hover, .mb-submit:focus-visible { transform: rotate(-1.5deg) scale(1.05); opacity: 1; }
+.mb-submit:active { transform: rotate(-1.5deg) scale(0.97); }
+/* 清空按钮：小字、低调 */
+.mb-reset-row { margin: 12px 0 0; text-align: right; }
+.mb-reset {
+  font-family: var(--font-type);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  color: var(--ink-faded);
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 5px 12px;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.mb-reset:hover { color: var(--accent); border-color: var(--accent); }
 
 /* =========================================================
-   提示条
+   页边批注：铅笔手写的联系方式
+   ========================================================= */
+.mb-side {
+  font-family: var(--font-hand);
+  font-size: 19px;
+  line-height: 1.9;
+  color: var(--ink-light);
+  padding-left: 16px;
+  border-left: 2px solid var(--red-margin);
+}
+.mb-side h3 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.16em;
+  color: var(--ink-faded);
+  margin: 0 0 8px;
+}
+.mb-side ul { list-style: none; margin: 0; padding: 0; }
+.mb-side li { position: relative; padding-left: 18px; margin: 3px 0; }
+.mb-side li::before { content: "—"; position: absolute; left: 0; color: var(--pencil); }
+.mb-side a { border-bottom: 1px solid var(--rule); }
+.mb-side a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* =========================================================
+   提示条：像一张撕下来的小纸条
    ========================================================= */
 .mb-toast {
   position: fixed;
   left: 50%;
-  bottom: 30px;
-  transform: translate(-50%, 22px);
-  padding: 12px 24px;
-  border-radius: 999px;
-  font-size: 14px;
-  color: var(--paper);
-  background: var(--ink);
+  bottom: 28px;
+  transform: translate(-50%, 16px);
+  max-width: 78vw;
+  padding: 10px 18px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
   box-shadow: var(--shadow);
+  font-family: var(--font-serif);
+  font-size: 14px;
+  color: var(--ink);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease, transform 0.3s ease;
@@ -403,36 +260,27 @@
 }
 .mb-toast.show { opacity: 1; transform: translate(-50%, 0); }
 
+/* 没有 JavaScript 时的说明 */
+.noscript-note {
+  margin: 18px 0 0;
+  padding-left: 14px;
+  border-left: 2px solid var(--red-margin);
+  font-size: 14px;
+  color: var(--ink-light);
+}
+
 /* =========================================================
-   响应式 / 无障碍
+   响应式
    ========================================================= */
-@media (max-width: 880px) {
-  .message-board { grid-template-columns: 1fr; gap: 26px; }
-  .message-section { padding: 88px 0 96px; }
-  .mb-hello { position: static; text-align: left; }
-  .mb-apple { margin-left: 46%; }
-  .glass-panel { padding: 22px 22px 24px; border-radius: 26px; }
-  /* 小屏尾巴改朝上，避免贴边被裁 */
-  .glass-panel::before { left: 40px; top: -2px; width: 34px; height: 12px; }
-  .glass-panel::after {
-    left: 42px;
-    top: -9px;
-    transform: rotate(45deg);
-    border-left: 1px solid rgba(255, 255, 255, 0.9);
-    border-bottom: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.9);
-    border-radius: 4px 0 0 0;
-  }
+@media (max-width: 720px) {
+  .mb-grid { grid-template-columns: 1fr; gap: 22px; }
+  .ledger-head, .ledger-row { grid-template-columns: 1fr; gap: 4px; }
+  .ledger-head span:last-child { display: none; }
+  .mb-side { font-size: 18px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mb-item,
-  .glass-panel,
-  .mb-photo { animation: none; transition: none; }
-  .mb-hello:hover .mb-apple { transform: none; }
-}
-
-/* 窄屏时导航变成底部横条，提示条相应上移，避免被盖住 */
-@media (max-width: 1099px) {
-  .mb-toast { bottom: 96px; }
+  .ledger-row.fresh { animation: none; }
+  .mb-note.shake { animation: none; }
+  .mb-note, .mb-submit { transition: none; }
 }
