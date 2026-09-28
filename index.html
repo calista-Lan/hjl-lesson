@@ -1,610 +1,1333 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
- <head>
+<head>
   <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1" name="viewport"/>
-  <!-- 可被搜索引擎收录：不再写 noindex, nofollow -->
+  <meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/>
+  <!-- 可被搜索引擎收录：不写 noindex, nofollow -->
   <meta content="黄锦澜的个人主页：广东科学技术职业学院大模型应用开发专业在读，正在学习 HTML5、CSS3 与 JavaScript，用每一次练习记录成长。" name="description"/>
   <meta content="黄锦澜" name="author"/>
-  <title>
-   黄锦澜 · 个人主页
-  </title>
+  <meta content="#fafafa" name="theme-color"/>
+  <title>黄锦澜 · 个人主页</title>
   <link href="assets/favicon.svg" rel="icon" type="image/svg+xml"/>
-  <!-- CSS 负责颜色、字体、布局；defer 让 JavaScript 在 HTML 解析完成后执行。 -->
-  <link href="styles.css" rel="stylesheet"/>
-  <!-- 第 3 课只新增这一张样式表：装帧与手作元素（藏书票、印章、胶带、修正带、圈注）。 -->
-  <link href="lesson-03-task.css" rel="stylesheet"/>
-  <!-- 留言板区块样式：借书卡 / 便签 / 页边批注 -->
-  <link href="message-board.css" rel="stylesheet"/>
-  <link href="draft-canvas.css" rel="stylesheet"/>
- </head>
- <body>
-  <!-- 手绘滤镜：pencil = 铅笔抖动描边；ink = 洇墨。供 CSS filter: url(#…) 引用 -->
-  <svg aria-hidden="true" focusable="false" height="0" style="position:absolute" width="0">
-   <filter id="pencil">
-    <feTurbulence baseFrequency="0.016" numOctaves="3" result="n" seed="7" type="fractalNoise"/>
-    <feDisplacementMap in="SourceGraphic" in2="n" scale="3.4" xChannelSelector="R" yChannelSelector="G"/>
-   </filter>
-   <filter id="ink">
-    <feTurbulence baseFrequency="0.05" numOctaves="2" result="n" seed="5" type="fractalNoise"/>
-    <feDisplacementMap in="SourceGraphic" in2="n" scale="1.2" xChannelSelector="R" yChannelSelector="G"/>
-   </filter>
-  </svg>
-  <a class="skip-link" href="#main">
-   跳到正文
-  </a>
-  <!-- 书签绳：随阅读进度向右抽出的一根红线（宽度由 script.js 计算） -->
-  <div aria-hidden="true" class="bookmark-rail">
-  </div>
-  <header class="site-header">
-   <div class="header-inner">
-    <a class="brand" href="#about">
-     我的主页
-    </a>
-    <!-- href="#栏目ID" 是原生锚点：即使不加载 JavaScript，也能跳到对应栏目。 -->
-    <nav aria-label="主导航">
-     <a href="#profile">
-      关于
-     </a>
-     <a href="#experience">
-      经历
-     </a>
-     <a href="#skills">
-      技能
-     </a>
-     <a href="#interests">
-      兴趣
-     </a>
-     <a href="#teaching">
-      实践
-     </a>
-     <a href="#publications">
-      记录
-     </a>
-     <a href="#message">
-      留言
-     </a>
-    </nav>
-   </div>
-  </header>
-  <main id="main">
-   <!-- HTML 练习：修改姓名、专业、照片路径和联系方式。 -->
-   <!-- 首页 = 旧书封面 / 扉页：书名、作者、出版年、藏书章，详细资料在内页 -->
-   <section class="book-cover" id="about">
-      <!-- 纸上草稿：Canvas 纸面层（纯装饰，不承载文字；样式 draft-canvas.css，脚本 draft-canvas.js） -->
-      <div class="hjl-canvas-wrap" data-hjl-draft="">
-        <div class="hjl-canvas" aria-hidden="true"><canvas></canvas></div>
-        <p class="hjl-canvas-ui">
-          <label class="hjl-canvas-file">用音频驱动<input class="hjl-canvas-input" type="file" accept="audio/*"/></label>
-          <button class="hjl-canvas-stop" type="button" hidden="">停</button>
-          <span class="hjl-canvas-state" role="status"></span>
-        </p>
-      </div>
-    <!-- data-tilt 是纸片的初始倾角（度），鼠标经过时会在此基础上微微摆动 -->
-    <div class="cover-sheet" data-tilt="-0.4">
-     <div class="cover-main">
-      <p class="cover-kicker">
-       PORTFOLIO
-      </p>
-      <h1 class="cover-title">
-       黄锦澜
-      </h1>
-      <!-- 这行拼音由 script.js 用打字机效果逐字打出 -->
-      <p class="cover-pinyin" data-typewriter="">
-       huang jin lan
-      </p>
-      <p class="cover-role">
-       大模型应用开发专业 · 前端开发学习者
-      </p>
-      <dl class="cover-imprint">
-       <div>
-        <dt>
-         作者
-        </dt>
-        <dd>
-         黄锦澜
-        </dd>
-       </div>
-       <div>
-        <dt>
-         出版
-        </dt>
-        <dd>
-         珠海 · 2026
-        </dd>
-       </div>
-       <div>
-        <dt>
-         版次
-        </dt>
-        <dd>
-         第 1 版 · 课程练习
-        </dd>
-       </div>
-      </dl>
-     </div>
-     <!-- 贴页照片：方形、去圆角，用胶带斜贴在纸面上 -->
-     <figure class="cover-photo taped">
-      <img alt="黄锦澜的照片" height="140" src="tx.jpg" width="140"/>
-      <figcaption>
-       图 1 · 著者像
-      </figcaption>
-     </figure>
-     <div class="cover-foot">
-      <!-- 藏书票：老式贴纸，内框 + EX LIBRIS -->
-      <div class="exlibris">
-       EX LIBRIS
-       <b>
-        黄锦澜
-       </b>
-      </div>
-      <!-- 藏书章：点一下会重新盖一次（动画见 lesson-03-task.css） -->
-      <button class="stamp" type="button">
-       藏 书
-      </button>
-      <a class="cover-scroll" href="#profile">
-       翻开内页 ↓
-      </a>
-     </div>
-    </div>
-   </section>
-   <!-- 内页：关于我（扉页背面 · 作者简介） -->
-   <section class="section" id="profile">
-    <div class="container">
-     <header class="section-heading">
-      <p aria-hidden="true" class="running-head">
-       黄锦澜 · 个人主页
-      </p>
-      <h2>
-       关于我
-      </h2>
-     </header>
-     <dl class="profile-details">
-      <dt>
-       学习方向
-      </dt>
-      <dd>
-       HTML5、CSS3、JavaScript，正在学习 Git、数据库与网站部署。
-      </dd>
-      <dt>
-       学习阶段
-      </dt>
-      <dd>
-       在校学习
-      </dd>
-      <dt>
-       所在城市
-      </dt>
-      <dd>
-       珠海
-      </dd>
-      <dt>
-       联系
-      </dt>
-      <dd>
-       18927846419
-       <br/>
-       mdusbsssb@qq.com
-      </dd>
-      <dt>
-       学校地址
-      </dt>
-      <dd>
-       <a href="https://j.map.baidu.com/e6/IQd" rel="noopener" target="_blank">
-        广东省珠海市金湾区
-       </a>
-      </dd>
-     </dl>
-     <!-- 页边批注：手写在红色边距线外侧 -->
-     <p class="margin-note">
-      2026
-      <span class="dot">
-       ·
-      </span>
-      珠海
-     </p>
-    </div>
-   </section>
-   <!-- 教育与工作经历 = 目录 / 章节列表，右侧是页码 -->
-   <section class="section" id="experience">
-    <div class="container">
-     <header class="section-heading">
-      <p aria-hidden="true" class="running-head">
-       黄锦澜 · 个人主页
-      </p>
-      <h2>
-       教育与工作经历
-      </h2>
-     </header>
-     <ol class="toc">
-      <li>
-       <span class="chapter">
-        广东科学技术职业学院 · 大模型应用开发专业
-       </span>
-       <time>
-        在读
-       </time>
-       <span class="dots">
-       </span>
-       <span class="page">
-        p.1
-       </span>
-       <p class="detail">
-        学习网页开发，用项目记录成长。
-       </p>
-      </li>
-     </ol>
-    </div>
-   </section>
-   <!-- 技能与实践 = 横线草稿页（蓝线 + 红色边距线 + 手写大字 + 铅笔圈注） -->
-   <section class="section" id="skills">
-    <div class="container">
-     <header class="section-heading">
-      <p aria-hidden="true" class="running-head">
-       黄锦澜 · 个人主页
-      </p>
-      <h2>
-       技能与实践
-      </h2>
-     </header>
-     <div class="section-content">
-      <!-- 修正带：贴在草稿页上的一条白胶带，鼠标移上去会翘起来 -->
-      <span aria-hidden="true" class="whiteout">
-      </span>
-      <!-- TASK-HTML：复制一个 li 就能增加一条自己的技能。 -->
-      <ul class="skills-list">
-       <li>
-        <span class="loop-wrap">
-         <strong>
-          网页内容
-         </strong>
-         <!-- 铅笔圈注：pathLength="1" 让描边长度归一，进入视口后被 script.js 描出来 -->
-         <svg aria-hidden="true" class="pencil-loop" preserveAspectRatio="none" viewBox="0 0 100 40">
-          <ellipse cx="50" cy="20" fill="none" pathLength="1" rx="47" ry="17" stroke="#7a746a" stroke-width="1.6"/>
-         </svg>
-        </span>
-        HTML5 结构、图片、链接。
-       </li>
-       <li>
-        <strong>
-         页面样式
-        </strong>
-        CSS3 字体、颜色、响应式布局。
-       </li>
-       <li>
-        <strong>
-         开发过程
-        </strong>
-        JavaScript、Git、检查与部署。
-       </li>
-      </ul>
-     </div>
-    </div>
-   </section>
-   <!-- 兴趣爱好 = 速写本：一排便利贴，可以横向拖动，也可以用左右方向键翻 -->
-   <section class="section" id="interests">
-    <div class="container">
-     <header class="section-heading">
-      <p aria-hidden="true" class="running-head">
-       黄锦澜 · 个人主页
-      </p>
-      <h2>
-       兴趣爱好
-      </h2>
-     </header>
-     <ul aria-label="兴趣爱好速写本：可左右拖动，或用方向键浏览" class="sketchbook" data-sketchbook="" tabindex="0">
-      <li class="note taped">
-       <span aria-hidden="true" class="note-ico">
-        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
-         <path d="M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.5 16.2z"/>
-         <path d="M15.4 6.2l2.4 2.4"/>
-        </svg>
-       </span>
-       <h3>
-        追剧
-       </h3>
-       <p>
-        熬夜追剧一时爽,一直追一直爽。
-       </p>
-      </li>
-      <li class="note taped">
-       <span aria-hidden="true" class="note-ico">
-        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
-         <path d="M9 17.5V5.6l10-2v11.9"/>
-         <ellipse cx="6.6" cy="17.8" rx="2.6" ry="2.2"/>
-         <ellipse cx="16.6" cy="15.8" rx="2.6" ry="2.2"/>
-        </svg>
-       </span>
-       <h3>
-        音乐
-       </h3>
-       <p>
-        人类的生命因音乐而恒长。
-       </p>
-      </li>
-      <!-- 摄影这张贴纸是一扇门：整张可点，通向另一本册子《拍照手札》 -->
-      <li class="note note--link taped">
-       <a class="note-hit" href="https://calista-lan.github.io/photography-Lan/" rel="noopener noreferrer" target="_blank">
-        <span aria-hidden="true" class="note-ico">
-         <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
-          <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h2l1.3-2h6.4L16.5 6h2A2.5 2.5 0 0 1 21 8.5v9A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5z"/>
-          <circle cx="12" cy="13" r="3.6"/>
-         </svg>
-        </span>
-        <h3>
-         摄影
-        </h3>
-        <p>
-         “记录是为了抵抗遗忘”
-        </p>
-        <span class="note-flag">
-         另有一本《拍照手札》
-         <span class="sr-only">
-          （在新窗口打开）
-         </span>
-        </span>
-       </a>
-      </li>
-      <li class="note taped">
-       <span aria-hidden="true" class="note-ico">
-        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
-         <path d="M5.2 9.4 4 4.2l4.4 2.4"/>
-         <path d="M18.8 9.4 20 4.2l-4.4 2.4"/>
-         <path d="M12 6.6a6.6 6.6 0 0 1 6.6 6.6c0 3.3-3 5.6-6.6 5.6s-6.6-2.3-6.6-5.6A6.6 6.6 0 0 1 12 6.6z"/>
-         <path d="M9.6 12.6h.01M14.4 12.6h.01"/>
-         <path d="M11.2 15.2h1.6"/>
-        </svg>
-       </span>
-       <h3>
-        动物
-       </h3>
-       <p>
-        “我可以转而与动物为伍”
-       </p>
-      </li>
-     </ul>
-    </div>
-   </section>
-   <!-- 学习与实践 = 章节正文 -->
-   <section class="section" id="teaching">
-    <div class="container">
-     <header class="section-heading">
-      <p aria-hidden="true" class="running-head">
-       黄锦澜 · 个人主页
-      </p>
-      <h2>
-       学习与实践
-      </h2>
-     </header>
-     <div class="chapter">
-      <h3>
-       本学期目标
-      </h3>
-      <ol>
-       <li>
-        每次课完成一个可运行的小改动。
-       </li>
-       <li>
-        能解释自己修改的 HTML、CSS 和 JavaScript。
-       </li>
-       <li>
-        使用 Git 记录版本，让作品能被别人访问。
-       </li>
-      </ol>
-     </div>
-     <p class="imprint-line">
-      <span>
-       本课练习 · 第 1 版
-      </span>
-      <span>
-       2026
-      </span>
-     </p>
-    </div>
-   </section>
-   <!-- 学习记录 = 书眉 + 脚注 -->
-   <section class="section" id="publications">
-    <div class="container">
-     <header class="section-heading">
-      <p aria-hidden="true" class="running-head">
-       黄锦澜 · 个人主页
-      </p>
-      <h2>
-       学习记录
-      </h2>
-     </header>
-     <div class="chapter">
-      <h3>
-       我的记录
-      </h3>
-      <ol>
-       <li>
-        完成第一张个人主页。
-       </li>
-       <li>
-        后续在这里补充自己的真实成果。
-       </li>
-      </ol>
-     </div>
-     <p class="imprint-line">
-      <span>
-       本课练习 · 第 1 版
-      </span>
-      <span>
-       2026
-      </span>
-     </p>
-    </div>
-   </section>
-   <!-- 留言板：借书卡登记 + 页边便签 + 铅笔批注 -->
-   <section class="section message-section" id="message">
-    <div class="container">
-     <header class="section-heading">
-      <p aria-hidden="true" class="running-head">
-       黄锦澜 · 个人主页
-      </p>
-      <h2>
-       留言板
-      </h2>
-     </header>
-     <!-- 借书卡：每条留言是一行登记记录 -->
-     <div class="ledger">
-      <p class="ledger-title" id="ledger-title">
-       借书卡 · 来访登记
-      </p>
-      <div aria-hidden="true" class="ledger-head">
-       <span>
-        日期
-       </span>
-       <span>
-        留言
-       </span>
-      </div>
-      <ol aria-labelledby="ledger-title" class="ledger-rows" data-ledger="">
-      </ol>
-      <!-- 空状态：一条留言都还没有时显示 -->
-      <p class="ledger-empty" data-ledger-empty="" hidden="">
-       还没有人留言 —— 第一行由你来写。
-      </p>
-     </div>
-     <div class="mb-grid">
-      <!-- 便签：贴在页边的一张黄纸，写留言用 -->
-      <div class="mb-note taped">
-       <h3>
-        写一张留言
-       </h3>
-       <form class="mb-form" novalidate="">
-        <label for="mb-message">
-         留言内容
-        </label>
-        <textarea id="mb-message" maxlength="200" name="message" placeholder="想说点什么？" required=""></textarea>
-        <label for="mb-contact">
-         你的联系方式（选填，不会公开显示）
-        </label>
-        <input id="mb-contact" maxlength="40" name="contact" placeholder="邮箱 / QQ / 微信"/>
-        <p class="mb-error" hidden="">
-         先写点内容再贴上来吧～
-        </p>
-        <div class="mb-form-foot">
-         <span class="mb-count">
-          <span data-count="">
-           0
-          </span>
-          / 200
-         </span>
-         <button class="mb-submit" type="submit">
-          贴到借书卡上
-         </button>
-        </div>
-        <p class="mb-reset-row">
-         <button class="mb-reset" type="button">
-          清空我贴的留言
-         </button>
-        </p>
-       </form>
-      </div>
-      <!-- 页边批注：铅笔手写的联系方式 -->
-      <aside class="mb-side">
-       <h3>
-        也可以直接找我
-       </h3>
-       <ul>
-        <li>
-         <a href="tel:18927846419">
-          18927846419
-         </a>
-        </li>
-        <li>
-         QQ
-         <span class="dot">
-          ·
-         </span>
-         2975415609
-        </li>
-        <li>
-         <a href="mailto:mdusbsssb@qq.com">
-          mdusbsssb@qq.com
-         </a>
-        </li>
-        <li>
-         微信
-         <span class="dot">
-          ·
-         </span>
-         Cshinipapa
-        </li>
-        <li>
-         <a href="https://j.map.baidu.com/e6/IQd" rel="noopener" target="_blank">
-          广东省珠海市金湾区
-         </a>
-        </li>
-       </ul>
-      </aside>
-     </div>
-     <noscript>
-      <p class="noscript-note">
-       留言板需要 JavaScript 才能登记留言；其余内容不加载脚本也能正常阅读。
-      </p>
-     </noscript>
-    </div>
-   </section>
-  </main>
-  <!-- 页脚 = 版权页 / 印刷信息 -->
-  <footer>
-   <div class="colophon">
-    <dl class="colophon-grid">
-     <div>
-      <dt>
-       书名
-      </dt>
-      <dd>
-       黄锦澜 · 个人主页
-      </dd>
-     </div>
-     <div>
-      <dt>
-       作者
-      </dt>
-      <dd>
-       黄锦澜
-      </dd>
-     </div>
-     <div>
-      <dt>
-       出版
-      </dt>
-      <dd>
-       珠海 · 2026
-      </dd>
-     </div>
-     <div>
-      <dt>
-       版次
-      </dt>
-      <dd>
-       第 1 版 · 课程练习
-      </dd>
-     </div>
-    </dl>
-    <p class="colophon-links">
-     <a href="#about">
-      回到封面
-     </a>
-     <a href="#message">
-      给我留言
-     </a>
-    </p>
-   </div>
-  </footer>
-  <button class="to-cover" type="button">
-   ↑ 回到封面
-  </button>
-  <div aria-live="polite" class="mb-toast" role="status">
-  </div>
-  <script defer="" src="script.js">
+  <!-- 先打一个 JS 可用的标记：样式里用 html.js 分流「滚动淡入」。
+       放在样式表之前，脚本被禁用时就不会出现「内容全被藏起来」的白屏。 -->
+  <script>
+    document.documentElement.className += " js";
   </script>
-  <script src="draft-canvas.js"></script>
- </body>
-</html>
+  <style>
+/* =========================================================
+   黄锦澜的个人主页 · 极简欧式单页
+   2026-09-28（第二次换肤）：把「书」也撤掉。
+   ---------------------------------------------------------
+   上一版换掉了纸，但留着书的骨架：8 个整屏页、绕书脊翻走的
+   那一张纸、底部角标条、目次弹层、页码、已读章。骨架还在，
+   读起来就还是「一本册子」。这一版把册子整个拆了：
 
-<!-- 本课任务详见课堂任务.md。 -->
+     · 一页到底，顺着往下滚。body 正常滚动（不再锁 overflow），
+       没有翻页热区、没有角标条、没有进度格子、没有页码。
+     · 顶栏常驻：左边站名，右边 7 个章节锚点，滚到哪一节
+       哪一节就带一条冷色下划线（aria-current）。
+     · 顶端一条 2px 进度线，就是原来那套「阅读进度」的替身。
+     · 「目次」变成开场里的一张索引表 —— 编号 + 章节名，
+       点一下直接跳过去，仍然是目录，只是不需要弹层了。
+     · 「已阅章」升级成「上次读到 技能 · 继续阅读」一行字，
+       存在 localStorage 里，下次打开还在。
+     · 留言的「到访章」「翻卡片」换成：新留言淡入时有一层
+       极淡的冷色底一闪而过 + 一行「已记录 · 日期」。
+
+   视觉语言（摄影师 Links 的作品气质 + 欧式极简版式）：
+     · 底色白到近乎没有颜色（#fafafa），内容列窄、留白大；
+     · 全站只有一档强调色：深海冷青 #175365，只出现在
+       进度线、当前章节下划线、正文链接、按钮悬停；
+     · 用发丝线代替一切装饰：没有纸纹、胶带、印章、铅笔圈注、
+       没有图标、没有阴影、没有渐变、没有毛玻璃；
+     · 字重只用 400 / 500，无衬线正文，编号与元信息用等宽 +
+       拉开字距 —— 这是这套版式最省力也最显眼的记号；
+     · 拿波里黄（2026-09-28 追加）：用户要「加一点点」。于是在冷青
+       之外再引一档暖色 --naples，但只落在极小面积上 —— 顶端那条
+       2px 进度线、章节与索引的编号 01–07、选中文字的底。分工是：
+       暖黄 = 你在第几段（进度与编号），冷青 = 当前与可点（下划线、
+       链接、按钮）。冷调仍然是主调，暖色只是记号的温度。
+     · 圆角统一 4px，是上限。
+
+   一条从上一版继承下来的硬规则（别改回去）：
+     凡是有字的元素，悬停 / 位移一律不要用 transform / scale。
+     浏览器遇到元素 transform 在变，会先把它的文字栅格化成位图
+     再跟着变换重采样 —— 动画期间整段字都是糊的（实测过：
+     鼠标扫过封面时书名、拼音、出版信息全页发虚）。
+     位移改用 top / left / right / bottom（只重画），
+     颜色改用 color / background / border-color，transform 只给纯图形。
+     本版没有任何 transform 动画：进度线改宽度，淡入只改 opacity。
+
+   回退路径：纸书版 index.prev-book.html、
+             暗色版（纸撤了、书还在）index.prev-dark.html、
+             更早的长滚动版 index.prev-scroll.html，都在同目录。
+   ========================================================= */
+
+/* ---------- 设计变量 ---------- */
+:root {
+  /* 白到近乎没有颜色：三层明度撑起全部层次 */
+  --bg: #fafafa;            /* 页面底 */
+  --card: #ffffff;          /* 输入框、页脚 */
+  --fill: #f0f0ee;          /* 图片未加载时的占位 */
+
+  /* 墨：不用纯黑，纯黑在白底上会发涩 */
+  --ink: #131014;           /* 正文与标题 */
+  --ink-2: #6f6f6f;         /* 次级文字 */
+  --ink-3: #9a9a97;         /* 标签、编号、日期 */
+
+  /* 线：只做发丝线，两种强度 */
+  --line: rgba(19, 16, 20, .10);
+  --line-soft: rgba(19, 16, 20, .055);
+
+  /* 全站唯一的颜色 */
+  --cold: #175365;          /* 深海冷青 */
+  --cold-soft: rgba(23, 83, 101, .34);
+  --warn: #8c2f2a;          /* 只在出错与「快写满」时出现 */
+
+  /* 拿波里黄：第二档颜色，但只做记号，绝不做主色。
+     两档是因为用途不同 —— 线要亮一点才像一根金丝，
+     小字要暗一点才在白底上读得出。 */
+  --naples: #dfba58;        /* 拿波里黄（2px 进度线） */
+  --naples-ink: #a8842c;    /* 暗拿波里黄（10.5px 编号，白底可读） */
+  --naples-soft: rgba(223, 186, 88, .45);  /* 选中文字的底 */
+
+  --radius: 4px;            /* 圆角上限 */
+  --wrap: 1160px;           /* 内容列宽 */
+  --bar-h: 58px;            /* 顶栏总高（含 1px 下边线），改高度要同步脚本里的 BAR_H */
+
+  /* 字体：正文无衬线（系统栈，不下载任何字体文件）；
+     编号、日期、拉丁小标签用等宽 —— 靠等宽 + 字距做「欧式」记号 */
+  --font: "Helvetica Neue", Helvetica, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC",
+          "Noto Sans SC", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Mono", Menlo,
+          Consolas, "Courier New", monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  /* 顶栏是 sticky 的，锚点跳转要给标题留出顶栏那一段，
+     否则标题会被顶栏压住（这是去掉「书」之后最容易踩的坑）。 */
+  scroll-padding-top: calc(var(--bar-h) + 24px);
+}
+/* 平滑滚动：只在用户没有要求「减少动态效果」时开 */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.75 var(--font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img { display: block; max-width: 100%; }
+p { margin: 0; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; }
+
+:focus-visible { outline: 2px solid var(--cold); outline-offset: 3px; }
+/* 选中文字时露一抹暖色 —— 只在用户自己动手时才出现 */
+::selection { background: var(--naples-soft); color: var(--ink); }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* 键盘用户跳过顶栏 */
+.skip {
+  position: absolute; left: -9999px; top: 0; z-index: 60;
+  padding: 10px 16px; font-size: 13px;
+  color: #fff; background: var(--ink);
+  border-radius: 0 0 var(--radius) 0;
+}
+.skip:focus { left: 0; }
+
+.wrap { width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 0 24px; }
+
+/* =========================================================
+   顶端进度线：原来那套「阅读进度」的替身。
+   只改宽度，不做 transform，所以不会碰到任何文字。
+   ========================================================= */
+.progress {
+  position: fixed; left: 0; top: 0; z-index: 50;
+  width: 100%; height: 2px;
+  pointer-events: none;
+}
+.progress i { display: block; width: 0; height: 100%; background: var(--naples); }
+
+/* =========================================================
+   顶栏：常驻，左站名 + 右章节锚点
+   ========================================================= */
+.bar {
+  position: sticky; top: 0; z-index: 30;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.bar-in {
+  display: flex; align-items: center; gap: 24px;
+  height: calc(var(--bar-h) - 1px);
+  max-width: var(--wrap); margin: 0 auto; padding: 0 24px;
+}
+.brand { display: flex; align-items: baseline; gap: 9px; white-space: nowrap; }
+.brand-cn { font-size: 15px; font-weight: 500; letter-spacing: .06em; }
+.brand-en { font: 10.5px/1 var(--mono); letter-spacing: .22em; color: var(--ink-3); }
+.brand:hover .brand-cn { color: var(--cold); }
+
+/* min-width:0 让窄屏时这一条能自己横向滚动，
+   而不是把站名挤出去（手机上 7 个锚点放不下）。 */
+.nav {
+  display: flex; align-items: center; gap: 24px;
+  margin-left: auto; min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav::-webkit-scrollbar { display: none; }
+.nav a {
+  padding: 4px 0;
+  font-size: 13.5px; color: var(--ink-2); white-space: nowrap;
+  border-bottom: 1px solid transparent;
+  transition: color .18s ease, border-color .18s ease;
+}
+.nav a:hover { color: var(--ink); }
+.nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--cold); }
+
+/* =========================================================
+   开场：一屏留白，名字是唯一的大字
+   ========================================================= */
+.hero { padding: clamp(64px, 10vw, 132px) 0 clamp(40px, 6vw, 68px); }
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 200px;
+  gap: clamp(32px, 5vw, 72px);
+  align-items: start;
+}
+
+.eyebrow { font: 10.5px/1 var(--mono); letter-spacing: .26em; color: var(--ink-3); }
+.hero h1 {
+  margin: 18px 0 0;
+  font-size: clamp(34px, 5.6vw, 54px);
+  font-weight: 500; line-height: 1.08; letter-spacing: -.015em;
+}
+.latin { margin: 13px 0 0; font: 11px/1 var(--mono); letter-spacing: .4em; color: var(--ink-3); }
+.role { margin: 22px 0 0; font-size: 16px; }
+.lede { margin: 14px 0 0; max-width: 46ch; font-size: 15px; color: var(--ink-2); }
+
+/* 续读：上次读到哪一节。第一次来的人看不到这一行。 */
+.resume {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px;
+  margin: 26px 0 0;
+  font-size: 13px; color: var(--ink-3);
+}
+.resume[hidden] { display: none; }
+.resume b { font-weight: 500; color: var(--ink); }
+.resume button {
+  padding: 0; font-size: 13px; color: var(--cold);
+  background: none; border: 0; border-bottom: 1px solid var(--cold-soft);
+  cursor: pointer;
+}
+.resume button:hover { border-bottom-color: var(--cold); }
+
+.hero-photo { margin: 8px 0 0; }
+.hero-photo img {
+  width: 100%; aspect-ratio: 1 / 1; object-fit: cover;
+  background: var(--fill);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.hero-photo figcaption {
+  margin-top: 11px;
+  font: 11px/1.5 var(--mono); letter-spacing: .12em; color: var(--ink-3);
+}
+
+/* =========================================================
+   开场里的索引表 = 原来的「目次」
+   编号 + 章节名，一格格排开，点一下跳过去
+   ========================================================= */
+.index { margin: clamp(44px, 6vw, 80px) 0 0; }
+.index ol {
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr));
+  margin: 0; padding: 0; list-style: none;
+}
+.index li { border-top: 1px solid var(--line); }
+.index a { display: block; padding: 16px 14px 16px 0; }
+.index a:hover .i-name { color: var(--cold); }
+.i-no {
+  display: block; margin-bottom: 9px;
+  font: 10.5px/1 var(--mono); letter-spacing: .2em; color: var(--naples-ink);
+}
+.i-name { display: block; font-size: 14px; color: var(--ink); }
+
+/* =========================================================
+   章节：一条发丝线开场，标题左、拉丁标签右
+   ========================================================= */
+.sec { padding: clamp(60px, 8vw, 100px) 0; border-top: 1px solid var(--line); }
+
+.sec-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 20px;
+  padding-bottom: 20px; margin-bottom: clamp(26px, 4vw, 40px);
+  border-bottom: 1px solid var(--line);
+}
+.sec-head h2 {
+  display: flex; align-items: baseline; gap: 14px;
+  margin: 0; font-size: clamp(19px, 2.2vw, 24px);
+  font-weight: 500; letter-spacing: .01em;
+}
+.sec-no { font: 10.5px/1 var(--mono); font-weight: 400; letter-spacing: .2em; color: var(--naples-ink); }
+.sec-en { font: 10.5px/1 var(--mono); letter-spacing: .24em; color: var(--ink-3); }
+
+/* ---------- 关于我：标签 / 值 两栏 ---------- */
+.facts { margin: 0; border-top: 1px solid var(--line-soft); }
+.fact {
+  display: grid; grid-template-columns: 150px minmax(0, 1fr);
+  gap: 6px 32px; padding: 22px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.fact dt { font-size: 13px; letter-spacing: .04em; color: var(--ink-3); }
+.fact dd { margin: 0; font-size: 15px; color: var(--ink-2); }
+.fact dd a { color: var(--ink); border-bottom: 1px solid var(--line); }
+.fact dd a:hover { color: var(--cold); border-bottom-color: var(--cold); }
+
+/* ---------- 经历 / 技能：编号 + 标题 + 时间 + 说明 ---------- */
+.entries { margin: 0; padding: 0; list-style: none; }
+.entries li {
+  display: grid; grid-template-columns: 52px minmax(0, 1fr) auto;
+  column-gap: 24px; row-gap: 8px;
+  padding: 26px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.entries li:first-child { border-top: 1px solid var(--line-soft); }
+.e-no { font: 11px/1 var(--mono); letter-spacing: .16em; color: var(--ink-3); padding-top: 6px; }
+.e-title { font-size: 16px; font-weight: 500; line-height: 1.5; }
+.e-meta {
+  padding-top: 4px; white-space: nowrap;
+  font: 11.5px/1.6 var(--mono); letter-spacing: .1em; color: var(--ink-3);
+}
+.e-desc { grid-column: 2 / -1; font-size: 15px; color: var(--ink-2); }
+
+/* ---------- 兴趣：两栏四格 ---------- */
+.hobbies {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 clamp(24px, 4vw, 56px);
+  margin: 0; padding: 0; list-style: none;
+}
+.hobby { padding: 26px 0; border-bottom: 1px solid var(--line-soft); }
+.hobby:nth-child(1), .hobby:nth-child(2) { border-top: 1px solid var(--line-soft); }
+.hobby h3 { margin: 0; font-size: 16px; font-weight: 500; }
+.hobby p { margin: 10px 0 0; max-width: 32ch; font-size: 15px; color: var(--ink-2); }
+/* 摄影这一格整块是一扇门，通向另一本册子《拍照手札》。
+   悬停只改颜色，不动 transform —— 里面有字。 */
+.hobby--link a { display: block; }
+.hobby--link a:hover h3,
+.hobby--link a:hover .hobby-more { color: var(--cold); }
+.hobby-more {
+  display: inline-block; margin-top: 14px;
+  font: 11px/1.5 var(--mono); letter-spacing: .14em; color: var(--ink-3);
+  transition: color .18s ease;
+}
+
+/* ---------- 目标 / 记录：编号列表 ---------- */
+.nlist { margin: 0; padding: 0; list-style: none; }
+.nlist li {
+  display: grid; grid-template-columns: 52px minmax(0, 1fr);
+  column-gap: 24px; padding: 20px 0;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 15.5px; color: var(--ink-2);
+}
+.nlist li:first-child { border-top: 1px solid var(--line-soft); }
+.nlist span { font: 11px/1.9 var(--mono); letter-spacing: .16em; color: var(--ink-3); }
+
+/* =========================================================
+   留言板
+   ========================================================= */
+.gb-grid {
+  display: grid; grid-template-columns: minmax(0, 1fr) 300px;
+  gap: clamp(32px, 5vw, 64px); align-items: start;
+}
+
+.ledger { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line-soft); }
+.ledger li {
+  display: grid; grid-template-columns: 132px minmax(0, 1fr);
+  column-gap: 20px; row-gap: 6px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.l-date { font: 11.5px/1.7 var(--mono); letter-spacing: .06em; color: var(--ink-3); }
+.l-text { font-size: 15px; white-space: pre-wrap; word-break: break-word; }
+/* 刚提交的那一条：一层极淡的冷色底闪一下就没。
+   用 background 动画（只重画），不碰 transform —— 里面有字。 */
+.ledger li.is-fresh { animation: fresh 1.5s ease-out; }
+@keyframes fresh {
+  from { background: rgba(23, 83, 101, .07); }
+  to   { background: transparent; }
+}
+.ledger-empty {
+  margin: 0; padding: 26px 0;
+  font-size: 14px; color: var(--ink-3);
+  border-top: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line-soft);
+}
+.ledger-empty[hidden] { display: none; }
+
+.gb-form { margin: 32px 0 0; }
+.gb-form label { display: block; margin: 0 0 8px; font-size: 13px; color: var(--ink-3); }
+.gb-form textarea,
+.gb-form input {
+  width: 100%; margin: 0 0 20px; padding: 12px 14px;
+  font-family: var(--font); font-size: 16px; line-height: 1.6; color: var(--ink);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+/* 手机端输入框字号必须 >= 16px，否则 iOS Safari 聚焦时会把整页放大 */
+.gb-form textarea { min-height: 104px; resize: vertical; }
+.gb-form textarea::placeholder,
+.gb-form input::placeholder { color: #b4b4b0; }
+.gb-form textarea:focus-visible,
+.gb-form input:focus-visible { outline: 2px solid var(--cold); outline-offset: 2px; }
+/* 内容为空时的提示：只改边框与底色，不做抖动（抖动要 transform，会把字晃糊） */
+.gb-form textarea.is-bad {
+  border-color: var(--warn);
+  background: rgba(140, 47, 42, .035);
+}
+
+.gb-error { margin: 0 0 16px; font-size: 13px; color: var(--warn); }
+.gb-error[hidden] { display: none; }
+
+.gb-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.gb-count { font: 11.5px/1 var(--mono); letter-spacing: .1em; color: var(--ink-3); }
+.gb-count [data-count].near { color: var(--warn); }
+
+.gb-submit {
+  padding: 11px 22px; font-size: 14px;
+  color: #fff; background: var(--ink);
+  border: 1px solid var(--ink); border-radius: var(--radius);
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease;
+}
+.gb-submit:hover { background: var(--cold); border-color: var(--cold); }
+
+.gb-note { margin: 16px 0 0; font-size: 12.5px; color: var(--cold); }
+.gb-note[hidden] { display: none; }
+
+.gb-reset-row { margin: 14px 0 0; }
+.gb-reset {
+  padding: 0; font-size: 13px; color: var(--ink-3);
+  background: none; border: 0; border-bottom: 1px solid transparent;
+  cursor: pointer;
+}
+.gb-reset:hover { color: var(--warn); border-bottom-color: currentColor; }
+/* 没留过言就没有这一行；确认态沿用警告色，一眼看出是危险动作 */
+.gb-reset-row[hidden] { display: none; }
+.gb-reset.is-confirming { color: var(--warn); border-bottom-color: currentColor; }
+
+/* =========================================================
+   云端留言（Twikoo）的皮肤对齐
+   ---------------------------------------------------------
+   组件自带一套白色圆角卡片，跟本站的极简欧式不是一路。
+   这里只做「拉回来」的四件事：字体改成本站的、圆角收到 4px、
+   阴影和渐变去掉、主色换成冷青。用属性选择器而不是精确类名，
+   这样组件小版本升级改了内部类名也不会整套失效。
+   真正的细节还在等接上后端之后按实际渲染微调。
+   ========================================================= */
+.cmt--cloud[hidden] { display: none; }
+.cmt--cloud { font-family: var(--font); color: var(--ink); }
+
+/* 组件内部的字体一律继承本站，不让它带回自己的字体栈 */
+.cmt--cloud,
+.cmt--cloud input,
+.cmt--cloud textarea,
+.cmt--cloud button,
+.cmt--cloud select { font-family: var(--font); }
+
+/* 输入框：与本站留言表单同一副长相（白底、发丝线、4px） */
+.cmt--cloud input,
+.cmt--cloud textarea {
+  color: var(--ink);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.cmt--cloud input:focus,
+.cmt--cloud textarea:focus {
+  border-color: var(--cold);
+  outline: none;
+}
+
+/* 按钮：本站只有留言提交是实心，这里也让主按钮实心起来 */
+.cmt--cloud button { border-radius: var(--radius); }
+.cmt--cloud [class*="primary"] { color: #fff; background: var(--cold); border-color: var(--cold); }
+
+/* 去掉一切阴影、渐变、毛玻璃 —— 本站的规矩 */
+.cmt--cloud [class*="tk-"],
+.cmt--cloud [class*="tk-"] * {
+  box-shadow: none;
+  text-shadow: none;
+  background-image: none;
+  backdrop-filter: none;
+}
+/* 圆角一律收到上限 4px，头像保持小方角（本站头像也是方的） */
+.cmt--cloud [class*="tk-"] { border-radius: var(--radius); }
+.cmt--cloud img { border-radius: var(--radius); }
+
+/* 组件自带的标题不必要，章节标题已经有了 */
+.cmt--cloud [class*="tk-comments-title"] { display: none; }
+/* 分隔线改成发丝线 */
+.cmt--cloud hr,
+.cmt--cloud [class*="tk-"] { border-color: var(--line-soft); }
+/* 链接沿用冷青 */
+.cmt--cloud a { color: var(--cold); }
+
+
+.noscript { margin: 20px 0 0; font-size: 13.5px; color: var(--ink-3); }
+
+/* ---------- 联系方式 ---------- */
+.gb-side h3 { margin: 0 0 18px; font-size: 14px; font-weight: 500; }
+.contact { margin: 0; border-top: 1px solid var(--line-soft); }
+.contact > div {
+  display: grid; grid-template-columns: 64px minmax(0, 1fr);
+  gap: 12px; padding: 13px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.contact dt { font-size: 12.5px; color: var(--ink-3); }
+.contact dd { margin: 0; font-size: 14px; color: var(--ink-2); word-break: break-all; }
+.contact dd a:hover { color: var(--cold); }
+
+/* ---------- 页脚 ---------- */
+.foot {
+  margin-top: clamp(40px, 6vw, 80px);
+  padding: 36px 0 46px;
+  background: var(--card);
+  border-top: 1px solid var(--line);
+}
+.foot p { font-size: 12.5px; color: var(--ink-3); }
+.foot p + p { margin-top: 8px; }
+.foot a { border-bottom: 1px solid var(--line); }
+.foot a:hover { color: var(--cold); border-bottom-color: var(--cold); }
+
+/* ---------- 提示条 ---------- */
+.toast {
+  position: fixed; left: 50%; bottom: 28px; z-index: 60;
+  transform: translateX(-50%);           /* 静态居中，不参与动画 */
+  padding: 11px 20px;
+  font-size: 13.5px; color: #fff;
+  background: var(--ink); border-radius: var(--radius);
+  opacity: 0; visibility: hidden;
+  transition: opacity .22s ease, visibility .22s ease;
+}
+.toast.show { opacity: 1; visibility: visible; }
+
+/* ---------- 滚动淡入：只改 opacity ---------- */
+.js .reveal { opacity: 0; }
+.js .reveal.in { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .js .reveal { transition: opacity .55s ease; }
+}
+
+/* =========================================================
+   窄屏
+   ========================================================= */
+@media (max-width: 900px) {
+  .hero-grid { grid-template-columns: minmax(0, 1fr); }
+  .hero-photo { max-width: 200px; margin-top: 34px; }
+  .index ol { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .hobbies { grid-template-columns: minmax(0, 1fr); }
+  .hobby:nth-child(2) { border-top: 0; }
+  .gb-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 700px) {
+  .bar-in { gap: 14px; padding: 0 18px; }
+  .brand-en { display: none; }
+  .nav { gap: 18px; }
+  .nav a { font-size: 13px; }
+  .wrap { padding: 0 18px; }
+  .fact { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .entries li { grid-template-columns: 34px minmax(0, 1fr); column-gap: 16px; }
+  .e-meta { grid-column: 2; padding-top: 0; }
+  .e-desc { grid-column: 2; }
+  .nlist li { grid-template-columns: 34px minmax(0, 1fr); column-gap: 16px; }
+  .ledger li { grid-template-columns: minmax(0, 1fr); }
+  .index ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ledger li.is-fresh { animation: none; }
+}
+  </style>
+</head>
+<body>
+
+  <a class="skip" href="#about">跳到正文</a>
+
+  <!-- 顶端进度线：读了多少 -->
+  <div aria-hidden="true" class="progress"><i data-progress></i></div>
+
+  <!-- 顶栏：左边站名，右边 7 个章节锚点（滚到哪一节，哪一节带下划线） -->
+  <header class="bar">
+    <div class="bar-in">
+      <a class="brand" href="#top">
+        <span class="brand-cn">黄锦澜</span>
+        <span class="brand-en">PORTFOLIO</span>
+      </a>
+      <nav aria-label="页面导航" class="nav" data-nav>
+        <a href="#about">关于</a>
+        <a href="#experience">经历</a>
+        <a href="#skills">技能</a>
+        <a href="#interests">兴趣</a>
+        <a href="#goals">目标</a>
+        <a href="#records">记录</a>
+        <a href="#guestbook">留言</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+
+    <!-- ================= 开场：名字 + 一句话 + 照片 + 索引 ================= -->
+    <section class="hero">
+      <div class="wrap">
+
+        <div class="hero-grid">
+          <div class="hero-text">
+            <p class="eyebrow">PORTFOLIO · 珠海 2026</p>
+            <h1>黄锦澜</h1>
+            <p class="latin">huang jin lan</p>
+            <p class="role">大模型应用开发专业 · 前端开发学习者</p>
+            <p class="lede">广东科学技术职业学院大模型应用开发专业在读，正在学习 HTML5、CSS3 与 JavaScript，用每一次练习记录成长。</p>
+
+            <!-- 续读提示：上次读到哪一节。第一次来访时先藏着，由脚本决定是否露出来 -->
+            <p class="resume" hidden>
+              上次读到
+              <b data-resume-name>技能</b>
+              <button data-resume-jump type="button">继续阅读</button>
+            </p>
+          </div>
+
+          <!-- 唯一的照片：不裁成圆的，不加滤镜，只做 1:1 方图 + 一条发丝边 -->
+          <figure class="hero-photo">
+            <img alt="黄锦澜的照片" height="200" src="tx.jpg" width="200"/>
+            <figcaption>珠海 · 2026</figcaption>
+          </figure>
+        </div>
+
+        <!-- 索引 = 原来的「目次」：编号 + 章节名，点一下跳过去 -->
+        <nav aria-label="目录" class="index">
+          <ol>
+            <li><a href="#about"><span class="i-no">01</span><span class="i-name">关于我</span></a></li>
+            <li><a href="#experience"><span class="i-no">02</span><span class="i-name">经历</span></a></li>
+            <li><a href="#skills"><span class="i-no">03</span><span class="i-name">技能</span></a></li>
+            <li><a href="#interests"><span class="i-no">04</span><span class="i-name">兴趣</span></a></li>
+            <li><a href="#goals"><span class="i-no">05</span><span class="i-name">目标</span></a></li>
+            <li><a href="#records"><span class="i-no">06</span><span class="i-name">记录</span></a></li>
+            <li><a href="#guestbook"><span class="i-no">07</span><span class="i-name">留言</span></a></li>
+          </ol>
+        </nav>
+
+      </div>
+    </section>
+
+    <!-- ================= 01 关于我 ================= -->
+    <section class="sec" id="about">
+      <div class="wrap">
+        <header class="sec-head reveal">
+          <h2><span class="sec-no">01</span>关于我</h2>
+          <span class="sec-en">ABOUT</span>
+        </header>
+
+        <dl class="facts">
+          <div class="fact reveal">
+            <dt>学习方向</dt>
+            <dd>聚焦大模型与智能体系统开发，兼修边缘计算、前端框架与AI辅助编程，具备AI应用与工程化开发基础。</dd>
+          </div>
+          <div class="fact reveal">
+            <dt>学习阶段</dt>
+            <dd>在校学习</dd>
+          </div>
+          <div class="fact reveal">
+            <dt>所在城市</dt>
+            <dd>珠海</dd>
+          </div>
+          <div class="fact reveal">
+            <dt>联系</dt>
+            <dd>
+              18927846419<br/>
+              mdusbsssb@qq.com
+            </dd>
+          </div>
+          <div class="fact reveal">
+            <dt>学校地址</dt>
+            <dd>
+              <a href="https://j.map.baidu.com/e6/IQd" rel="noopener" target="_blank">广东省珠海市金湾区</a>
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- ================= 02 经历 ================= -->
+    <section class="sec" id="experience">
+      <div class="wrap">
+        <header class="sec-head reveal">
+          <h2><span class="sec-no">02</span>教育与工作经历</h2>
+          <span class="sec-en">EXPERIENCE</span>
+        </header>
+
+        <!-- TASK-HTML：复制一个 li 就能增加一条经历 -->
+        <ol class="entries">
+          <li class="reveal">
+            <span class="e-no">01</span>
+            <span class="e-title">广东科学技术职业学院 · 大模型应用开发专业</span>
+            <span class="e-meta">在读</span>
+            <p class="e-desc">学习网页开发，用项目记录成长。</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ================= 03 技能 ================= -->
+    <section class="sec" id="skills">
+      <div class="wrap">
+        <header class="sec-head reveal">
+          <h2><span class="sec-no">03</span>技能与实践</h2>
+          <span class="sec-en">SKILLS</span>
+        </header>
+
+        <!-- TASK-HTML：复制一个 li 就能增加一条自己的技能 -->
+        <ul class="entries">
+          <li class="reveal">
+            <span class="e-no">01</span>
+            <span class="e-title">CET-4</span>
+            <p class="e-desc">具备基本的英语读写能力，可阅读英文技术文档以及基础交流能力</p>
+          </li>
+          <li class="reveal">
+            <span class="e-no">02</span>
+            <span class="e-title">页面样式</span>
+            <p class="e-desc">CSS3 字体、颜色、响应式布局。</p>
+          </li>
+          <li class="reveal">
+            <span class="e-no">03</span>
+            <span class="e-title">开发过程</span>
+            <p class="e-desc">JavaScript、Git、检查与部署。</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================= 04 兴趣 ================= -->
+    <section class="sec" id="interests">
+      <div class="wrap">
+        <header class="sec-head reveal">
+          <h2><span class="sec-no">04</span>兴趣爱好</h2>
+          <span class="sec-en">INTERESTS</span>
+        </header>
+
+        <ul aria-label="兴趣爱好" class="hobbies">
+          <li class="hobby reveal">
+            <h3>追剧</h3>
+            <p>熬夜追剧一时爽,一直追一直爽。</p>
+          </li>
+          <li class="hobby reveal">
+            <h3>音乐</h3>
+            <p>人类的生命因音乐而恒长。</p>
+          </li>
+          <!-- 摄影这一格是一扇门：整块可点，通向另一本册子《拍照手札》 -->
+          <li class="hobby hobby--link reveal">
+            <a href="https://calista-lan.github.io/photography-Lan/" rel="noopener noreferrer" target="_blank">
+              <h3>摄影</h3>
+              <p>“记录是为了抵抗遗忘”</p>
+              <span class="hobby-more">另有一本《拍照手札》<span class="sr-only">（在新窗口打开）</span></span>
+            </a>
+          </li>
+          <li class="hobby reveal">
+            <h3>动物</h3>
+            <p>“我可以转而与动物为伍”</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================= 05 目标 ================= -->
+    <section class="sec" id="goals">
+      <div class="wrap">
+        <header class="sec-head reveal">
+          <h2><span class="sec-no">05</span>学习与实践</h2>
+          <span class="sec-en">GOALS</span>
+        </header>
+
+        <ol class="nlist">
+          <li class="reveal"><span>01</span>每次课完成一个可运行的小改动。</li>
+          <li class="reveal"><span>02</span>能解释自己修改的 HTML、CSS 和 JavaScript。</li>
+          <li class="reveal"><span>03</span>使用 Git 记录版本，让作品能被别人访问。</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ================= 06 记录 ================= -->
+    <section class="sec" id="records">
+      <div class="wrap">
+        <header class="sec-head reveal">
+          <h2><span class="sec-no">06</span>学习记录</h2>
+          <span class="sec-en">RECORDS</span>
+        </header>
+
+        <ol class="nlist">
+          <li class="reveal"><span>01</span>完成第一张个人主页。</li>
+          <li class="reveal"><span>02</span>后续在这里补充自己的真实成果。</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ================= 07 留言 ================= -->
+    <section class="sec" id="guestbook">
+      <div class="wrap">
+        <header class="sec-head reveal">
+          <h2><span class="sec-no">07</span>留言板</h2>
+          <span class="sec-en">GUESTBOOK</span>
+        </header>
+
+        <div class="gb-grid">
+
+          <div class="gb-main reveal">
+
+            <!-- 本机留言板：没接云端后端时的兜底。
+                 留言只存在这台电脑的浏览器里，换台机器或清掉浏览器数据就没了。 -->
+            <div class="cmt cmt--local" data-cmt-local>
+
+              <!-- 留言表：一条一行。只登记真实来访者写的，不放任何示例数据。 -->
+              <ol aria-label="来访留言" class="ledger" data-ledger></ol>
+              <!-- 空状态：一条留言都还没有时显示 -->
+              <p class="ledger-empty" data-ledger-empty hidden>还没有人留言 —— 第一行由你来写。</p>
+
+              <form class="gb-form" novalidate>
+                <label for="gb-message">留言内容</label>
+                <textarea id="gb-message" maxlength="200" name="message" placeholder="想说点什么？" required></textarea>
+
+                <label for="gb-contact">你的联系方式（选填，不会公开显示）</label>
+                <input id="gb-contact" maxlength="40" name="contact" placeholder="邮箱 / QQ / 微信"/>
+
+                <p class="gb-error" hidden>先写点内容再贴上来吧～</p>
+
+                <div class="gb-foot">
+                  <span class="gb-count"><span data-count>0</span> / 200</span>
+                  <button class="gb-submit" type="submit">发布留言</button>
+                </div>
+
+                <!-- 到访痕迹：提交后写上一行「已记录 · 日期」，不是盖章，只是一行小字 -->
+                <p class="gb-note" data-visit hidden></p>
+
+                <!-- 默认藏起来：只有本机真的留过言，脚本才把这一行放出来。
+                     陌生访客（没留过言）看不到这个入口。 -->
+                <p class="gb-reset-row" data-reset-row hidden>
+                  <button class="gb-reset" type="button">清空我的留言</button>
+                </p>
+              </form>
+
+              <noscript>
+                <p class="noscript">留言板需要 JavaScript 才能登记留言；其余内容不加载脚本也能正常阅读。</p>
+              </noscript>
+            </div>
+
+            <!-- 云端留言：在脚本顶部把 CLOUD_ENV_ID 填上之后，
+                 由这段容器接管留言区，上面那套本机留言板自动隐去。 -->
+            <div class="cmt cmt--cloud" data-cmt-cloud hidden></div>
+          </div>
+
+          <aside class="gb-side reveal">
+            <h3>也可以直接找我</h3>
+            <dl class="contact">
+              <div>
+                <dt>电话</dt>
+                <dd><a href="tel:18927846419">18927846419</a></dd>
+              </div>
+              <div>
+                <dt>QQ</dt>
+                <dd>2975415609</dd>
+              </div>
+              <div>
+                <dt>邮箱</dt>
+                <dd><a href="mailto:mdusbsssb@qq.com">mdusbsssb@qq.com</a></dd>
+              </div>
+              <div>
+                <dt>微信</dt>
+                <dd>Cshinipapa</dd>
+              </div>
+              <div>
+                <dt>地址</dt>
+                <dd><a href="https://j.map.baidu.com/e6/IQd" rel="noopener" target="_blank">广东省珠海市金湾区</a></dd>
+              </div>
+            </dl>
+          </aside>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <div class="wrap">
+      <p>黄锦澜 · 个人主页</p>
+      <p>珠海 · 2026 · 第 1 版 · 课程练习</p>
+      <p>
+        <a href="https://calista-lan.github.io/photography-Lan/" rel="noopener noreferrer" target="_blank">拍照手札</a>
+        &nbsp;·&nbsp;
+        <a href="#top">回到顶部</a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- 提示条 -->
+  <div aria-live="polite" class="toast" role="status"></div>
+
+  <script>
+/* =========================================================
+   极简欧式单页 · 交互脚本
+   ① 进度线 + 当前章节   ② 续读进度（localStorage）
+   ③ 滚动淡入            ④ 留言板
+   ---------------------------------------------------------
+   这一版把整本「册子」拆了，原来的翻页、角标条、目次弹层、
+   刻度、已读章全部删除，所以脚本比上一版短了很多。
+   ========================================================= */
+(function () {
+  "use strict";
+
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* 顶栏总高，必须与 CSS 里的 --bar-h 一致：
+     它决定了「章节算不算已经开始」以及锚点跳转后留多少空。 */
+  var BAR_H = 58;
+
+  var progressBar = document.querySelector("[data-progress]");
+  var navLinks = Array.prototype.slice.call(document.querySelectorAll("[data-nav] a"));
+  var sections = navLinks.map(function (a) {
+    return document.querySelector(a.getAttribute("href"));
+  }).filter(Boolean);
+
+  var current = -1;
+  var ticking = false;
+
+  /* =========================================================
+     ② 续读进度
+     ========================================================= */
+  var PKEY = "hjl-read-progress-v1";   /* 与旧版的 hjl-book-progress-v1 分开，互不干扰 */
+  var saved = null;
+
+  function loadProgress() {
+    try {
+      var raw = window.localStorage.getItem(PKEY);
+      if (!raw) return null;
+      var o = JSON.parse(raw);
+      if (o && typeof o.sec === "number" && o.sec > 0 && o.sec < sections.length) return o;
+    } catch (err) {
+      /* 隐私模式 / 沙盒里读不到：静默退回，功能照常，只是不记得 */
+    }
+    return null;
+  }
+
+  function saveProgress() {
+    if (current <= 0) return;       /* 还停在开场，不算「读到过」 */
+    try {
+      window.localStorage.setItem(PKEY, JSON.stringify({ sec: current, t: Date.now() }));
+    } catch (err) {}
+  }
+
+  /* =========================================================
+     ① 进度线 + 当前章节
+     ========================================================= */
+  function paint() {
+    ticking = false;
+
+    var doc = document.documentElement;
+    var y = window.pageYOffset || doc.scrollTop || 0;
+    var max = doc.scrollHeight - window.innerHeight;
+
+    if (progressBar) {
+      progressBar.style.width = (max > 0 ? Math.min(100, (y / max) * 100) : 0) + "%";
+    }
+
+    /* 当前章节 = 最后一个「顶端已经越过顶栏」的章节。
+       这里用位置比较、不用 IntersectionObserver：
+       观察器只会报「谁在视野里」，而一次跳转（点导航、带锚点进来）
+       会整段跨过中间章节，我们要的是「读到哪儿了」，不是「看见了谁」。 */
+    var line = BAR_H + 40;
+    /* -1 表示「还停在开场」：第一段还没顶到顶栏时，顶栏不高亮任何一项。
+       停在封面就亮着「关于」会让人以为已经读到了。 */
+    var idx = -1;
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].getBoundingClientRect().top - line <= 0) idx = i;
+    }
+    /* 滚到底时强制点亮最后一节：末节太短时上面那条永远追不上 */
+    if (max > 0 && y >= max - 2) idx = sections.length - 1;
+
+    if (idx !== current) {
+      current = idx;
+      navLinks.forEach(function (a, i) {
+        if (i === idx) a.setAttribute("aria-current", "page");
+        else a.removeAttribute("aria-current");
+      });
+      saveProgress();
+    }
+  }
+
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(function () { paint(); sweep(); });
+  }
+
+  /* =========================================================
+     ③ 滚动淡入（只改 opacity）
+     ---------------------------------------------------------
+     条件写成「元素顶端已经进入视口下沿」而不是「正在视口里」：
+     一次跳转会把中间那些元素整个跳过，观察器看不到它们，
+     只判断「在不在视口里」的话它们会永远停在 0 透明度（实测踩到过）。
+     这个写法把「已经滚过去的」一并算进去。
+     ========================================================= */
+  var revealEls = Array.prototype.slice.call(document.querySelectorAll(".reveal"));
+
+  function sweep() {
+    if (reduce) {
+      revealEls.forEach(function (el) { el.classList.add("in"); });
+      return;
+    }
+    revealEls.forEach(function (el) {
+      if (el.classList.contains("in")) return;
+      if (el.getBoundingClientRect().top < window.innerHeight - 16) el.classList.add("in");
+    });
+  }
+
+  /* 跳到某一节：锚点链接交给浏览器自己处理（html 上有 scroll-padding-top），
+     只有「续读」这类脚本触发的跳转自己算位置。 */
+  function goTo(el) {
+    var top = el.getBoundingClientRect().top + (window.pageYOffset || 0) - BAR_H - 24;
+    window.scrollTo({ top: Math.max(0, top), behavior: reduce ? "auto" : "smooth" });
+  }
+
+  /* =========================================================
+     ④ 留言板
+     沿用旧的存储键：以前留过的留言不会因为换版而消失。
+     ---------------------------------------------------------
+     默认是「本机留言」：留言只存在这台电脑的浏览器里 —— 别人
+     看不到你写的，你也看不到别人写的。想让它变成真正的公共
+     留言板，把下面 CLOUD_ENV_ID 填上云端环境地址即可。
+     ========================================================= */
+
+  /* 云端环境地址。留空 = 继续用本机留言板。
+     接好后填成部署平台给的那串地址（Netlify 是
+     https://xxx.netlify.app/.netlify/functions/twikoo）。 */
+  var CLOUD_ENV_ID = "";
+
+  var cloudHost = document.querySelector("[data-cmt-cloud]");
+  var localHost = document.querySelector("[data-cmt-local]");
+
+  /* 没配好 / 加载失败 / 组件起不来 → 退回本机留言板，留言区不会空着 */
+  function useLocalBoard() {
+    if (localHost) localHost.hidden = false;
+    if (cloudHost) {
+      cloudHost.hidden = true;
+      cloudHost.textContent = "";
+    }
+  }
+
+  (function cloudBoard() {
+    if (!CLOUD_ENV_ID || !cloudHost) return;
+
+    function boot() {
+      if (!window.twikoo || !window.twikoo.init) { useLocalBoard(); return; }
+      try {
+        var job = window.twikoo.init({
+          envId: CLOUD_ENV_ID,      /* 云端环境地址 */
+          el: cloudHost,            /* 挂在哪个容器里 */
+          lang: "zh-CN",
+          path: location.pathname   /* 全站只有一个留言区，路径固定 */
+        });
+        if (job && job.catch) job.catch(useLocalBoard);
+        if (localHost) localHost.hidden = true;
+        cloudHost.hidden = false;
+      } catch (err) {
+        useLocalBoard();
+      }
+    }
+
+    /* 组件只有滚到留言区附近才下载 —— 别让它拖累首屏 */
+    function inject() {
+      var s = document.createElement("script");
+      s.src = "assets/twikoo.all.min.js";
+      s.onload = boot;
+      s.onerror = useLocalBoard;
+      document.head.appendChild(s);
+    }
+
+    /* 用滚动位置判断，不用 IntersectionObserver：
+       后者在无头环境里回调恒不触发，测不了；几何判断也更直白。
+       位置看 #guestbook 这个可见的 section —— 隐藏元素的 rect 全是 0，
+       拿它判断会一进来就误判成「已经到了」。 */
+    var anchor = document.getElementById("guestbook") || cloudHost;
+    var started = false;
+
+    function tryLoad() {
+      if (started) return;
+      var rect = anchor.getBoundingClientRect();
+      if (rect.top > window.innerHeight + 800) return;   /* 还离得远，先不下载 */
+      started = true;
+      window.removeEventListener("scroll", tryLoad);
+      window.removeEventListener("resize", tryLoad);
+      inject();
+    }
+
+    window.addEventListener("scroll", tryLoad, { passive: true });
+    window.addEventListener("resize", tryLoad);
+    tryLoad();   /* 带锚点直接落到底部时也要能加载 */
+  })();
+
+  var gbForm = document.querySelector(".gb-form");
+
+  /* 走云端时本机留言板整套不启动（它在 DOM 里但已隐藏） */
+  if (gbForm && !CLOUD_ENV_ID) {
+    var MB_KEY = "hjl-message-board-v1";
+
+    /* 本机署名：只为分辨「哪些留言是我这台浏览器留的」，用来决定
+       「清空我的留言」露不露出来、以及该删哪几条。
+       不联网、不上报、不含任何个人信息，就存自己浏览器里。 */
+    var OWNER_KEY = "hjl-guestbook-owner-v1";
+    var owner = (function () {
+      var id = "";
+      try { id = window.localStorage.getItem(OWNER_KEY) || ""; } catch (err) {}
+      if (!id) {
+        id = "o" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+        try { window.localStorage.setItem(OWNER_KEY, id); } catch (err) {}
+      }
+      return id;
+    })();
+    var ta = gbForm.querySelector("#gb-message");
+    var contact = gbForm.querySelector("#gb-contact");
+    var countEl = gbForm.querySelector("[data-count]");
+    var errEl = gbForm.querySelector(".gb-error");
+    var noteEl = document.querySelector("[data-visit]");
+    var ledger = document.querySelector("[data-ledger]");
+    var emptyEl = document.querySelector("[data-ledger-empty]");
+    var resetBtn = gbForm.querySelector(".gb-reset");
+    var resetRow = gbForm.querySelector("[data-reset-row]");
+    var toast = document.querySelector(".toast");
+
+    var toastTimer;
+    function showToast(msg) {
+      if (!toast) return;
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove("show"); }, 2200);
+    }
+
+    function load() {
+      try {
+        var raw = window.localStorage.getItem(MB_KEY);
+        var arr = raw ? JSON.parse(raw) : [];
+        return Object.prototype.toString.call(arr) === "[object Array]" ? arr : [];
+      } catch (err) {
+        return [];
+      }
+    }
+    function save(arr) {
+      try { window.localStorage.setItem(MB_KEY, JSON.stringify(arr)); } catch (err) {}
+    }
+    function pad(n) { return (n < 10 ? "0" : "") + n; }
+    function nowStamp() {
+      var d = new Date();
+      return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) +
+        " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+    }
+    function dateOf(s) {
+      /* "2026-09-28 15:40" → "2026-09-28" */
+      return String(s || "").slice(0, 10);
+    }
+
+    var messages = load();
+
+    /* 老版本留下的留言没有署名，它们本来就出自这台机器，
+       收编到本机名下 —— 不然自己以前的留言会变成「清不掉」的。 */
+    var adopted = false;
+    messages.forEach(function (m) {
+      if (!m || !m.by) { m.by = owner; adopted = true; }
+    });
+    if (adopted) save(messages);
+
+    /* 我留过的那些 */
+    function mine() {
+      return messages.filter(function (m) { return m && m.by === owner; });
+    }
+
+    var resetTimer;
+    function disarmReset() {
+      if (!resetBtn) return;
+      clearTimeout(resetTimer);
+      resetBtn.classList.remove("is-confirming");
+      resetBtn.textContent = "清空我的留言";
+    }
+
+    /* 「清空我的留言」只对留过言的人露出来 */
+    function updateReset() {
+      if (!resetRow) return;
+      resetRow.hidden = mine().length === 0;
+      if (resetRow.hidden) disarmReset();
+    }
+
+    function render(fresh) {
+      if (!ledger) return;
+      ledger.textContent = "";
+      messages.forEach(function (m) {
+        var li = document.createElement("li");
+
+        var d = document.createElement("span");
+        d.className = "l-date";
+        d.textContent = m.time || "—";
+
+        var t = document.createElement("span");
+        t.className = "l-text";
+        t.textContent = m.text;      /* 用 textContent 渲染，防 XSS */
+
+        li.appendChild(d);
+        li.appendChild(t);
+        ledger.appendChild(li);
+      });
+      if (emptyEl) emptyEl.hidden = messages.length > 0;
+      updateReset();
+      if (fresh) {
+        var first = ledger.querySelector("li");
+        if (first) first.classList.add("is-fresh");
+      }
+    }
+
+    /* 到访痕迹：一行小字，不是盖章 */
+    function showVisit(when) {
+      if (!noteEl || !when) return;
+      noteEl.textContent = "已记录 · " + when;
+      noteEl.hidden = false;
+    }
+
+    function countChars() {
+      if (!countEl || !ta) return;
+      var n = ta.value.length;
+      countEl.textContent = String(n);
+      countEl.classList.toggle("near", n > 170);   /* 快写满 200 字时变砖红提醒 */
+    }
+
+    render();
+    countChars();
+    /* 之前来过并留过言：把上次的日期摆出来
+       （只认本机自己留的，陌生访客不留痕迹） */
+    var mineFirst = mine()[0];
+    if (mineFirst) showVisit(dateOf(mineFirst.time));
+
+    if (ta) {
+      ta.addEventListener("input", function () {
+        countChars();
+        if (ta.value.trim()) {
+          ta.classList.remove("is-bad");
+          errEl.hidden = true;
+        }
+      });
+      /* Ctrl / Cmd + Enter 快捷提交 */
+      ta.addEventListener("keydown", function (ev) {
+        if ((ev.ctrlKey || ev.metaKey) && ev.key === "Enter") {
+          ev.preventDefault();
+          if (gbForm.requestSubmit) gbForm.requestSubmit();
+          else gbForm.dispatchEvent(new Event("submit", { cancelable: true }));
+        }
+      });
+    }
+
+    gbForm.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var text = ta.value.trim();
+
+      if (!text) {
+        errEl.hidden = false;
+        ta.classList.add("is-bad");
+        ta.focus();
+        showToast("留言还是空的哦～");
+        setTimeout(function () { ta.classList.remove("is-bad"); }, 1600);
+        return;
+      }
+
+      var when = nowStamp();
+      messages.unshift({ text: text, contact: contact.value.trim(), time: when, by: owner });
+      save(messages);
+      render(true);
+      gbForm.reset();
+      countChars();
+      errEl.hidden = true;
+      showVisit(dateOf(when));
+      showToast("已登记，谢谢你");
+    });
+
+    if (resetBtn) {
+      resetBtn.addEventListener("click", function () {
+        /* 第一下只是把按钮变成「再点一次确认清空」，不动数据；
+           4 秒内没再点就自己还原，防止手滑。 */
+        if (!resetBtn.classList.contains("is-confirming")) {
+          resetBtn.classList.add("is-confirming");
+          resetBtn.textContent = "再点一次确认清空";
+          clearTimeout(resetTimer);
+          resetTimer = setTimeout(disarmReset, 4000);
+          return;
+        }
+        /* 只删自己名下的，别人的一条不动 */
+        messages = messages.filter(function (m) { return !m || m.by !== owner; });
+        save(messages);
+        render();
+        disarmReset();
+        if (noteEl) {
+          noteEl.hidden = true;
+          noteEl.textContent = "";
+        }
+        showToast("已清空我的留言");
+      });
+    }
+  }
+
+  /* =========================================================
+     启动
+     ========================================================= */
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll);
+
+  paint();
+  sweep();
+  /* 兜底：字体载入 / 图片撑开高度会改变位置，再扫两遍 */
+  setTimeout(sweep, 320);
+  setTimeout(sweep, 1300);
+
+  /* 续读提示：只在真的读到过内页时露出来 */
+  saved = loadProgress();
+  var resumeLine = document.querySelector(".resume");
+  if (saved && resumeLine && sections[saved.sec]) {
+    var nameEl = resumeLine.querySelector("[data-resume-name]");
+    if (nameEl) nameEl.textContent = navLinks[saved.sec].textContent.trim();
+    resumeLine.hidden = false;
+
+    var jumpBtn = resumeLine.querySelector("[data-resume-jump]");
+    if (jumpBtn) {
+      jumpBtn.addEventListener("click", function () {
+        goTo(sections[saved.sec]);
+      });
+    }
+  }
+
+  /* 切到后台时补存一次，免得最后一段的进度丢掉 */
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "hidden") saveProgress();
+  });
+})();
+  </script>
+
+</body>
+</html>

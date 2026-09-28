@@ -1,0 +1,3475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/>
+  <!-- 可被搜索引擎收录：不写 noindex, nofollow -->
+  <meta content="黄锦澜的个人主页：广东科学技术职业学院大模型应用开发专业在读，正在学习 HTML5、CSS3 与 JavaScript，用每一次练习记录成长。" name="description"/>
+  <meta content="黄锦澜" name="author"/>
+  <title>
+   黄锦澜 · 个人主页
+  </title>
+  <link href="assets/favicon.svg" rel="icon" type="image/svg+xml"/>
+  <!-- 先打一个 JS 可用的标记：样式里用 html.js / html:not(.js) 分流。
+       放在样式表之前，脚本被禁用时就不会出现「所有页面都被藏起来」的白屏。 -->
+  <script>
+   document.documentElement.className += " js";
+  </script>
+  <style>
+/* =========================================================
+   黄锦澜的个人主页 · 翻页式电子书
+   改造要点：整本站不再纵向滚动，8 个板块各自占满一屏，
+             靠「翻页」切换（淡入淡出 + 极轻微的翻书倾角），
+             右下角 / 左下角 / 方向键 / 左右滑动 都能翻。
+   视觉沿用旧版：纸书 + 草稿绘画 + 旧印刷质感。
+   注意：圆角一律 ≤4px，阴影只用「纸片层叠」，不用发光 / 毛玻璃。
+   ========================================================= */
+
+/* ---------- 字体：@font-face 必须放在样式表最前面 ---------- */
+/* 衬线（正文与标题）：项目自带子集 woff2 */
+@font-face {
+  font-family: "Noto Serif SC";
+  src: url("assets/noto-serif-sc-400.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Noto Serif SC";
+  src: url("assets/noto-serif-sc-600.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+/* 手写体（批注、便利贴、留言便签）：福禄灵感·喝茶体 */
+@font-face {
+  font-family: "TeaHand";
+  src: url("FuLuLingGanHeChaTi-2.ttf") format("truetype");
+  font-display: swap;
+}
+
+/* ---------- 设计变量（沿用旧版 tokens） ---------- */
+:root {
+  /* 纸：三种深浅，用来做「一叠纸」的层叠 */
+  --paper: #f3ead7;        /* 书页（最上层的纸） */
+  --paper-deep: #e8dcc3;   /* 桌面 / 封面底 / 页眉底 */
+  --paper-edge: #ded0b6;   /* 书页切口、层叠露出的边 */
+
+  /* 墨：不用纯黑，模拟褪色墨水 */
+  --ink: #2a2622;
+  --ink-light: #5c554b;
+  --ink-faded: #7d7466;
+
+  /* 铅笔与印刷色 */
+  --pencil: #7a746a;
+  --accent: #8c3b2e;       /* 砖红：章号、页码、当前刻度 */
+  --stamp: #b23a2e;        /* 印章红 */
+  --blue-line: #a9c3d6;    /* 横线纸的蓝线 */
+  --red-margin: #d98b8b;   /* 红色边距线 */
+  --tape: rgba(220, 200, 150, 0.45);
+  --note: #e8dba9;         /* 便利贴（旧黄） */
+
+  --rule: rgba(42, 38, 34, 0.16);
+  --measure: 820px;        /* 内容列宽 */
+  --radius: 2px;           /* 圆角上限 */
+
+  /* 阴影 = 纸片层叠 */
+  --shadow: 0 1px 0 rgba(0, 0, 0, 0.08), 0 8px 24px rgba(70, 50, 20, 0.08);
+  --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.06), 0 4px 12px rgba(70, 50, 20, 0.07);
+
+  --font-serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+  --font-hand: "TeaHand", "Kaiti SC", "STKaiti", "楷体", cursive;
+  /* 打字机体只负责拉丁字母与数字，汉字由衬线兜底 */
+  --font-type: "Courier New", "Special Elite", "Noto Serif SC", "Songti SC", monospace;
+
+  /* 翻页式布局自己的尺寸 */
+  --bar-h: 58px;           /* 底部角标条高度（实测值，改角标条后要重新量） */
+  --bar-offset: 14px;      /* 角标条离屏幕底边的距离（窄屏会把它抬高） */
+  /* 页面底部要给角标条留出的总高度 = 底距 + 条自身高度 + 一点余量。
+     写成一个变量：窄屏抬高角标条时，底部留白自动跟着变大，
+     不会出现「角标条抬上去了、留白没跟上」把版权行压住的情况。 */
+  --bar-reserve: calc(var(--bar-h) + var(--bar-offset) + 14px);
+  --corner-w: 232px;       /* 纸角可点区域（宽屏做大一点，翻页入口才显眼） */
+  --corner-h: 186px;
+}
+
+* { box-sizing: border-box; }
+
+/* =========================================================
+   关键约束：整本「书」不滚动
+   body 绝不出现纵向滚动条；单页内容超出一屏时，
+   只允许 .page 自己内部滚动（小屏才需要）。
+   ========================================================= */
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;            /* 禁掉 body 纵向滚动 */
+  overscroll-behavior: none;   /* 禁掉到顶/到底的橡皮筋与下拉刷新 */
+}
+body {
+  font: 17px/1.9 var(--font-serif);
+  color: var(--ink);
+  background: var(--paper-deep);
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+}
+
+/* 纸纹：一层极淡的噪点（内联 SVG，不请求外部图片） */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;                  /* 在书页之下、桌面之上 */
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
+}
+
+img { max-width: 100%; height: auto; display: block; }
+a { color: var(--ink); text-decoration: none; transition: color 0.2s ease; }
+a:hover { color: var(--accent); }
+
+/* 键盘用户专用：平时藏在屏幕外，聚焦后滑进来 */
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 10px 18px;
+  border-radius: 0 0 3px 0;
+  z-index: 90;
+}
+.skip-link:focus { left: 0; }
+
+/* =========================================================
+   常驻小零件：书名（左上）+ 目录书签（右侧书口）
+   ========================================================= */
+.running-header {
+  position: fixed;
+  left: 22px;
+  top: 16px;
+  z-index: 30;
+  font-family: var(--font-serif);
+  font-size: 12.5px;
+  letter-spacing: 0.18em;
+  color: var(--ink-faded);
+}
+.running-header button {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 4px 2px;
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.running-header button:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* 目录书签：从书口伸出来的一枚竖排标签，点开目次 */
+.bookmark-tab {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 30;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  font-family: var(--font-serif);
+  font-size: 13px;
+  letter-spacing: 0.24em;
+  color: var(--ink-light);
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
+  border-right: 0;
+  border-radius: 3px 0 0 3px;
+  padding: 14px 8px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  /* 悬停时改用 right 位移，不再用 transform ——
+     transform 动画会让浏览器把「目 次」两个竖排字先栅格化再重采样，字会糊一下。
+     right 只重画。静态的 translateY(-50%) 不在动画里，留着做垂直居中。 */
+  transition: right 0.24s ease, color 0.24s ease, background 0.24s ease;
+}
+.bookmark-tab:hover,
+.bookmark-tab:focus-visible {
+  right: 11px;
+  background: var(--paper);
+  color: var(--accent);
+}
+
+/* =========================================================
+   书：8 个 .page 叠在同一处，同一时刻只显示一个
+   ========================================================= */
+.book {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  /* 3D 舞台：翻页那一张纸的远近感全靠它。
+     2600px 是量出来的 —— 透视再近，纸转到侧面时会被放大成一块
+     越转越大的梯形；再远就几乎没有立体感了。
+     perspective-origin（消失点）由脚本逐次放到书脊那条竖线上。 */
+  perspective: 2600px;
+}
+
+.page {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  /* 页面内容超出一屏时只在这里内部滚动，body 始终不动 */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* pan-y：纵向手势交给浏览器滚动，横向手势留给 JS 做翻页判定 */
+  touch-action: pan-y;
+  padding: 0;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 1;
+  scrollbar-width: thin;
+}
+.page::-webkit-scrollbar { width: 8px; }
+.page::-webkit-scrollbar-thumb {
+  background: var(--paper-edge);
+  border-radius: 4px;
+}
+
+/* 当前页：静止状态 */
+.page.is-current {
+  opacity: 1;
+  visibility: visible;
+  z-index: 3;
+}
+/* =========================================================
+   翻页 · 一张纸绕书脊翻走
+   ---------------------------------------------------------
+   翻的是「纸」，不是「页面内容」。
+   有字的元素只要进了 transform，浏览器就会先把字栅格化成一张位图，
+   再带着位图跟着变换重采样 —— 整段动画里字都是糊的（跟鼠标悬停
+   时字发虚是同一个根源）。所以真正在翻动的是一张没有字的空白纸，
+   底下那一页从头到尾一动不动，字始终清楚。
+   纸的位置与大小在每次翻页时由脚本按纸面量出来（见 turnLeaf）。
+   ========================================================= */
+.leaf {
+  position: absolute;
+  z-index: 4;              /* 压住书页(3)。.book 自成层叠上下文，
+                              所以它再高也压不过角标条(40)、页角(35)这些家具 */
+  pointer-events: none;
+  visibility: hidden;
+  --turn: 0.72s;                                 /* 与脚本里的 TURN_MS 保持一致 */
+  --turn-ease: ease-out;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background-color: var(--paper);
+  /* 纸的弯曲：靠书脊一侧受光偏亮，自由边一侧背光偏暗 */
+  background-image: linear-gradient(to right,
+      rgba(255, 255, 255, 0.58) 0%,
+      rgba(255, 255, 255, 0.10) 32%,
+      rgba(58, 48, 36, 0.04) 70%,
+      rgba(58, 48, 36, 0.14) 100%);
+}
+/* 反着翻：受光的一侧换到右边 */
+.leaf--prev {
+  background-image: linear-gradient(to left,
+      rgba(255, 255, 255, 0.58) 0%,
+      rgba(255, 255, 255, 0.10) 32%,
+      rgba(58, 48, 36, 0.04) 70%,
+      rgba(58, 48, 36, 0.14) 100%);
+}
+/* 纸上的横格：和笔记本内页同一套浅蓝（--blue-line #a9c3d6），压得很淡，
+   只是「这是一张纸」的暗示，不抢戏 */
+.leaf::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: repeating-linear-gradient(
+      to bottom,
+      rgba(169, 195, 214, 0) 0,
+      rgba(169, 195, 214, 0) 28px,
+      rgba(169, 195, 214, 0.30) 28px,
+      rgba(169, 195, 214, 0.30) 29px);
+  opacity: 0.45;
+}
+/* 越转越背光：整体再压暗一档。这一层只在 .is-turning 时挂动画，
+   和主动画同一时刻开始，所以始终同步。 */
+.leaf::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(58, 48, 36, 0.38);
+  opacity: 0;
+}
+.leaf.is-turning::before {
+  animation: leafShade var(--turn) var(--turn-ease) both;
+}
+.leaf--next.is-turning { transform-origin: left center;  animation-name: leafNext; }
+.leaf--prev.is-turning { transform-origin: right center; animation-name: leafPrev; }
+.leaf.is-turning {
+  visibility: visible;
+  animation-duration: var(--turn);
+  animation-timing-function: var(--turn-ease);
+  animation-fill-mode: both;
+}
+/* 转到 90° 时纸正好侧对镜头：消失点就压在书脊那条线上，投影收成一条线，
+   所以收尾不会在屏幕边上留下一块梯形。最后 14% 的淡出只是保险，
+   防着边缘抗锯齿留下一条细线。 */
+@keyframes leafNext {
+  from { transform: rotateY(0deg); }
+  86% { opacity: 1; }
+  to { transform: rotateY(-90deg); opacity: 0; }
+}
+@keyframes leafPrev {
+  from { transform: rotateY(0deg); }
+  86% { opacity: 1; }
+  to { transform: rotateY(90deg); opacity: 0; }
+}
+@keyframes leafShade {
+  from { opacity: 0; }
+  86% { opacity: 0.18; }
+  to { opacity: 0.34; }
+}
+
+/* 页内容器：用 margin:auto 而不是 justify-content:center，
+   这样内容比一屏高的时候顶部不会被切成够不着 */
+.page-inner {
+  display: flex;
+  flex-direction: column;
+  /* 上下不留 auto：让纸靠 align-items:stretch 铺满一屏。
+     原来是 margin:auto 居中，内容少的那几页就缩成一张小卡片浮在空桌面中间 ——
+     这正是「看起来太空」的主因。 */
+  /* align-self:flex-start + min-height:100%：
+     内容少 → 撑到一屏；内容多 → 照常长高，.page 还能内部滚动。
+     （用 align-items:stretch 的话，item 被钉死在容器高度上，
+       内容一超高就溢出到框外，页面反而滚不动了。） */
+  align-self: flex-start;
+  width: min(var(--measure), 100%);
+  margin: 0 auto;
+  min-height: 100%;
+  padding: 78px 28px var(--bar-reserve);
+}
+/* 封面那张纸窄一些 */
+.page-inner--cover { width: min(660px, 100%); }
+
+/* =========================================================
+   封面 · 旧书封面 / 书名页（左对齐，不做居中大标题 + 圆角头像）
+   ========================================================= */
+.cover-sheet {
+  position: relative;
+  display: grid;
+  /* 封面也是一张摊满一屏的纸：末行 1fr 吃掉多出来的高度，
+     「翻开内页」那一行 align-self:end 就贴在封面的底边。 */
+  grid-template-rows: auto auto auto 1fr;
+  flex: 1 1 auto;
+  grid-template-columns: minmax(0, 1fr) 168px;
+  column-gap: 26px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 46px 44px 36px;
+  transform: rotate(-0.4deg);
+  /* 这里原先还挂着一个 transition，配合 JS 里的 data-tilt 让封面跟着鼠标微倾。
+     已删，原因写在下面那段 JS 的注释里：对整张纸做 transform 动画，
+     浏览器会先把纸上的字栅格化成位图、再带着变换去缩放重采样，字会先糊一下。
+     静态的 rotate(-0.4deg) 不参与任何动画，字是清楚的，保留。 */
+}
+.cover-main { grid-column: 1; }
+.cover-kicker {
+  font-family: var(--font-type);
+  font-size: 12px;
+  letter-spacing: 0.34em;
+  color: var(--ink-faded);
+  margin: 0 0 14px;
+}
+.cover-title {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: clamp(44px, 7.4vw, 76px);
+  line-height: 1.12;
+  letter-spacing: 0.1em;
+  margin: 0 0 8px;
+  color: var(--ink);
+  /* 套印错位：红版偏印 1px，像老式印刷没对准 */
+  text-shadow: 1px 0 rgba(140, 59, 46, 0.2);
+}
+/* 打字机逐字打出的拼音（由页面脚本执行） */
+.cover-pinyin {
+  font-family: var(--font-type);
+  font-size: 14px;
+  letter-spacing: 0.3em;
+  color: var(--ink-light);
+  margin: 0 0 6px;
+  min-height: 1.4em;
+}
+.cover-pinyin.typing::after {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 1em;
+  margin-left: 2px;
+  background: var(--accent);
+  vertical-align: -2px;
+  animation: caret 0.9s steps(1) infinite;
+}
+@keyframes caret { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+.cover-role {
+  font-family: var(--font-serif);
+  font-size: 17.5px;
+  color: var(--ink-light);
+  margin: 0 0 30px;
+}
+/* 出版信息：像版权页那几行 */
+.cover-imprint {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 11px 18px;
+  margin: 0;
+  padding-top: 22px;
+  border-top: 1px solid var(--rule);
+  max-width: 360px;
+}
+.cover-imprint dt {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  color: var(--ink-faded);
+}
+.cover-imprint dd {
+  margin: 0;
+  font-family: var(--font-type);
+  font-size: 12.5px;
+  color: var(--ink-light);
+}
+
+/* 贴页照片：方形，去圆角，用胶带斜贴在纸面上 */
+.cover-photo {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 4px 0 0;
+  position: relative;
+  /* 倾斜挂在照片本身，不挂在 figure 上：
+     figure 里还有一行说明文字，整块跟着做 transform 动画的话那行字会一起糊。
+     只转照片，说明文字全程清楚。 */
+}
+.cover-photo img {
+  width: 156px;
+  height: 156px;
+  object-fit: cover;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper-edge);
+  filter: sepia(0.22) contrast(0.96);  /* 轻微做旧，不做发光 */
+  transform: rotate(1.6deg);
+  transition: transform 0.3s ease;
+}
+.cover-photo:hover img { transform: rotate(0deg); }
+.cover-photo figcaption {
+  font-family: var(--font-type);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  color: var(--ink-faded);
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* 封面底部：藏书票 + 藏书章 + 翻开内页 */
+.cover-foot {
+  grid-column: 1 / -1;
+  align-self: end;
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+/* 翻开内页：一枚纸边小按钮，箭头用 CSS 画（字体里没有可靠的下箭头字形） */
+.cover-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-serif);
+  font-size: 14px;
+  letter-spacing: 0.16em;
+  color: var(--ink-light);
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  padding: 2px 1px 3px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.cover-open:hover { color: var(--accent); border-bottom-color: var(--accent); }
+.cover-open-cue {
+  width: 9px;
+  height: 9px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translate(-2px, -2px);  /* 指向前下方 */
+  transition: transform 0.25s ease;
+}
+
+/* 封面上的翻页说明：第一次来的人得先知道这本书怎么翻 */
+.cover-hint {
+  grid-column: 1 / -1;
+  margin: 18px 0 0;
+  font-family: var(--font-serif);
+  font-size: 13.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink-faded);
+}
+.cover-open:hover .cover-open-cue { transform: rotate(45deg) translate(1px, 1px); }
+
+/* 续读提示：夹在封面上的一枚书签 */
+.resume-line {
+  grid-column: 1 / -1;
+  margin: 18px 0 0;
+  padding: 9px 14px 9px 12px;
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  font-family: var(--font-serif);
+  font-size: 13.5px;
+  color: var(--ink-light);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.resume-line b { color: var(--accent); font-weight: 600; }
+.resume-jump {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  background: none;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 3px 10px;
+  cursor: pointer;
+  margin-left: auto;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.resume-jump:hover { background: var(--accent); color: var(--paper); }
+/* 这条不能省：hidden 属性是靠浏览器默认的 display:none 生效的，
+   上面一旦写了 display:flex 就会把它顶掉 ——
+   结果「你上次读到第 N 页」对第一次来的访客也照样显示。 */
+.resume-line[hidden] { display: none; }
+
+/* =========================================================
+   通用书页：一张纸 + 书眉 + 章号标题（+ 角上的「已阅」章）
+   ========================================================= */
+.sheet {
+  position: relative;
+  /* 摊满一屏的纸：flex:1 让它撑到页底；纸里的内容按列排，
+     最后那行页脚再用 margin-top:auto 沉到纸的底边。 */
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 34px 40px 30px;
+}
+/* 页脚：书页最下面那行版记（章号 · 栏目 + 页码），由脚本按 data 属性生成。
+   内容再少，纸的底边也有一行落款，整页才立得住。 */
+.sheet-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin: auto 0 0;
+  padding-top: 20px;
+  font-family: var(--font-type);
+  font-size: 11.5px;
+  letter-spacing: 0.16em;
+  color: var(--ink-faded);
+}
+.sheet-foot b { color: var(--accent); font-weight: 400; }
+
+/* 内容少的页：让主要内容块在剩下的纸面上自己配平。
+   .sheet 是 flex 列，几个 auto 外边距会把空白平分到
+   「标题下 / 内容下 / 页脚上」三处，不会全堆在纸的下半截。 */
+#pg-experience .toc,
+#pg-goal .chapter,
+#pg-records .chapter { margin: auto 0; }
+.running-head {
+  margin: 0 0 6px;
+  font-family: var(--font-type);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--ink-faded);
+}
+.section-heading {
+  position: relative;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 16px;
+  margin-bottom: 34px;
+  /* 给右上角的「已阅」章留出位置，标题不会被压住 */
+  padding-right: 76px;
+}
+.section-heading h2 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 30px;
+  letter-spacing: 0.08em;
+  margin: 0;
+  color: var(--ink);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+/* 章号 §：用打字机体，砖红 */
+.section-heading h2::before {
+  content: "§";
+  font-family: var(--font-type);
+  font-size: 19px;
+  color: var(--accent);
+}
+
+/* 已阅章：进这一页时盖下来的一枚小印，半调网点让它有漏印感 */
+.read-stamp {
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-family: var(--font-serif);
+  font-size: 14px;
+  letter-spacing: 0.18em;
+  color: var(--stamp);
+  border: 2px solid var(--stamp);
+  border-radius: var(--radius);
+  padding: 3px 9px;
+  transform: rotate(-7deg);
+  opacity: 0;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(circle, #000 68%, rgba(0, 0, 0, 0.4) 69%, transparent 100%);
+  mask-image: radial-gradient(circle, #000 68%, rgba(0, 0, 0, 0.4) 69%, transparent 100%);
+  -webkit-mask-size: 4px 4px;
+  mask-size: 4px 4px;
+}
+/* 已经收集过的章：安静地待着，不再动 */
+.read-stamp.is-collected { opacity: 0.86; }
+/* 刚刚盖下去：从高处压下来，轻微回弹 */
+.read-stamp.is-stamping { animation: stampDown 0.5s ease both; }
+@keyframes stampDown {
+  0% { opacity: 0; transform: rotate(-7deg) scale(1.6); }
+  55% { opacity: 1; transform: rotate(-7deg) scale(0.92); }
+  100% { opacity: 0.86; transform: rotate(-7deg) scale(1); }
+}
+
+/* =========================================================
+   关于我 = 作者简介（定义列表 + 红色边距线 + 铅笔边注）
+   ========================================================= */
+.profile-details {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 22px 30px;
+  margin: 0;
+  padding-left: 28px;
+  border-left: 2px solid var(--red-margin);
+}
+.profile-details dt {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  letter-spacing: 0.16em;
+  color: var(--ink-light);
+  padding-top: 3px;
+  white-space: nowrap;
+}
+.profile-details dd { margin: 0; font-size: 17.5px; color: var(--ink); }
+.profile-details a { border-bottom: 1px solid var(--rule); }
+.profile-details a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+/* 边注：手写在页边，前面加一道铅笔破折号 */
+.margin-note {
+  margin: 32px 0 0;
+  padding-left: 28px;
+  font-family: var(--font-hand);
+  font-size: 22px;
+  color: var(--ink-light);
+  transform: rotate(-0.8deg);
+}
+.margin-note::before { content: "— "; color: var(--pencil); }
+/* 手写体里没有的标点（如中圆点），单独用衬线渲染，避免一行里混两套字体 */
+.dot { font-family: var(--font-serif); }
+
+/* =========================================================
+   教育与工作经历 = 目录式章节列表（点线引导 + 页码）
+   ========================================================= */
+.toc { list-style: none; margin: 0; padding: 0; }
+.toc li {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  gap: 6px 12px;
+  align-items: baseline;
+  padding: 56px 0;
+  border-bottom: 1px dotted var(--rule);
+}
+.toc li:last-child { border-bottom: 0; }
+.toc .chapter { grid-column: 1; font-family: var(--font-serif); font-size: 24px; line-height: 1.5; color: var(--ink); }
+.toc time { grid-column: 2; }
+.toc .dots { grid-column: 3; align-self: center; border-bottom: 1px dotted var(--rule); }
+/* 注意：这个页码原先叫 .page，跟「整屏一页」的 .page 撞了名 ——
+   结果它被样式当成一页藏了起来，目录里的 p.1 根本看不见。
+   改名 .toc-page，这个名字只属于目录。 */
+.toc-page {
+  grid-column: 4;
+  font-family: var(--font-type);
+  font-size: 16px;
+  color: var(--ink-faded);
+  position: relative;
+  left: 0;
+  /* 挪位置用 left，不用 transform：页码文字不重采样，不会糊一下 */
+  transition: color 0.2s ease, left 0.2s ease;
+}
+.toc li:hover .toc-page { color: var(--accent); left: -3px; }
+.toc time {
+  font-family: var(--font-type);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--ink-faded);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1px 8px;
+  white-space: nowrap;
+}
+.toc .detail { grid-column: 1 / -1; margin: 18px 0 0; font-size: 18px; color: var(--ink-light); }
+
+/* =========================================================
+   技能与实践 = 横线草稿页（蓝线 + 红色边距线 + 手写大字）
+   ========================================================= */
+/* 横线纸：行高与蓝线间距都锁成 32px，手写大字才落在格线上 */
+.section-content {
+  position: relative;
+  /* flex:1 让这块横线纸自己撑满剩下的纸面：
+     余白直接变成格线，草稿页本来就该是写了一半的样子，
+     不用写死 padding 去凑高度（换屏幕尺寸也不会错位）。 */
+  flex: 1 1 auto;
+  padding: 14px 22px 44px 30px;
+  border-left: 2px solid var(--red-margin);
+  border-radius: var(--radius);
+  background: repeating-linear-gradient(180deg, transparent 0 43px, var(--blue-line) 43px 44px);
+}
+.skills-list { list-style: none; margin: 0; padding: 0; }
+.skills-list li {
+  font-family: var(--font-hand);
+  font-size: 25px;
+  line-height: 44px;
+  color: var(--ink);
+  position: relative;
+}
+.skills-list strong {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  margin-right: 12px;
+}
+
+/* =========================================================
+   兴趣爱好 = 速写本（一排便利贴）
+   注意：旧版这里可以横向拖动；因为横向手势现在用来翻页，
+   改成换行铺开，避免「拖一下就把页翻走」的冲突。
+   ========================================================= */
+.sketchbook {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  padding: 14px 4px 16px;
+  margin: 0;
+  list-style: none;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+.note {
+  flex: 1 1 178px;
+  max-width: 260px;
+  position: relative;
+  background: var(--note);
+  border-radius: var(--radius);
+  padding: 22px 16px 18px;
+  box-shadow: var(--shadow-sm);
+  /* 贴纸微歪的角度是静态的、不参与动画，所以纸上的字是清楚的 */
+  transform: rotate(-1.2deg);
+  /* 「抬起来」改用位置偏移 top，不用 transform：
+     top 只触发重画，不会把字栅格化后重新采样，字不会糊。 */
+  top: 0;
+  transition: top 0.25s ease, box-shadow 0.25s ease;
+}
+.note:nth-child(even) { transform: rotate(1deg); }
+.note:hover, .note:focus-within {
+  top: -5px;
+  box-shadow: var(--shadow);
+  z-index: 2;
+}
+.note-ico svg { width: 26px; height: 26px; display: block; stroke: var(--pencil); }
+.note h3 {
+  font-family: var(--font-hand);
+  font-size: 23px;
+  font-weight: 400;
+  margin: 10px 0 6px;
+  color: var(--ink);
+}
+.note p { margin: 0; font-family: var(--font-serif); font-size: 14px; color: var(--ink-light); }
+/* 摄影这张贴纸是通往另一本册子的门：整张可点 */
+.note-hit { display: block; color: inherit; text-decoration: none; }
+.note-hit:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.note-flag {
+  display: inline-block;
+  margin-top: 10px;
+  padding-bottom: 1px;
+  font-family: var(--font-serif);      /* 去向说明是信息，用衬线，不用手写体 */
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  border-bottom: 1px dashed rgba(140, 59, 46, 0.5);
+}
+.note--link:hover .note-flag,
+.note--link:focus-within .note-flag { border-bottom-style: solid; }
+/* 只给读屏软件的补充文字 */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =========================================================
+   章节正文（学习与实践 / 学习记录）
+   ========================================================= */
+.chapter h3 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 26px;
+  letter-spacing: 0.06em;
+  margin: 0 0 28px;
+  color: var(--ink);
+}
+.chapter h3::before { content: "§ "; font-family: var(--font-type); color: var(--accent); }
+.chapter ol { margin: 0; padding-left: 30px; line-height: 2.15; color: var(--ink); }
+.chapter li { margin: 26px 0; }
+/* 印张线：章节末尾那行小小的印刷信息 */
+.imprint-line {
+  margin-top: 34px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-family: var(--font-type);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--ink-faded);
+}
+
+/* =========================================================
+   留言板 · 借书卡：留言是一条条登记上去的记录
+   不放任何示例数据，空着就空着，等真实来访者写。
+   ========================================================= */
+.ledger {
+  border: 1px solid var(--ink-faded);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+.ledger-title {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  letter-spacing: 0.16em;
+  color: var(--ink-light);
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--paper-deep);
+  border-bottom: 1px solid var(--ink-faded);
+}
+/* 表头：日期 / 留言 两栏，打字机体 */
+.ledger-head {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: 12px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--ink-faded);
+  font-family: var(--font-type);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--ink-faded);
+}
+.ledger-rows { list-style: none; margin: 0; padding: 0; }
+.ledger-row {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: 12px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--blue-line);
+  align-items: baseline;
+}
+.ledger-row:last-child { border-bottom: 0; }
+.ledger-row:hover { background: rgba(42, 38, 34, 0.03); }
+/* 刚贴上的一行：从上落下来 */
+.ledger-row.fresh { animation: rowIn 0.5s ease; }
+@keyframes rowIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: none; }
+}
+.ledger-date {
+  font-family: var(--font-type);
+  font-size: 11.5px;
+  color: var(--ink-light);
+  white-space: nowrap;
+}
+/* 我贴的留言：日期盖成红色小戳 */
+.ledger-row[data-kind="mine"] .ledger-date {
+  display: inline-block;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 1px;
+  padding: 0 6px;
+  transform: rotate(-1.2deg);
+}
+.ledger-text {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.ledger-empty {
+  margin: 0;
+  padding: 18px 14px;
+  text-align: center;
+  font-family: var(--font-serif);
+  font-size: 14px;
+  color: var(--ink-faded);
+}
+
+/* 便签表单 + 页边批注 */
+.mb-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+  gap: 26px;
+  margin-top: 22px;
+  align-items: start;
+  /* 卡片翻转需要 3D 舞台 */
+  perspective: 1300px;
+}
+
+/* 便签：贴在页边的一张黄纸 */
+.mb-note {
+  position: relative;
+  background: var(--note);
+  border-radius: var(--radius);
+  padding: 26px 22px 20px;
+  transform: rotate(-1deg);
+  box-shadow: var(--shadow-sm);
+  top: 0;
+  /* 抬起用 top 不用 transform：便签里是输入框和标签，里面的字不能糊 */
+  transition: top 0.25s ease, box-shadow 0.25s ease;
+}
+.mb-note:focus-within {
+  top: -4px;
+  box-shadow: var(--shadow);
+}
+.mb-note h3 {
+  font-family: var(--font-hand);
+  font-weight: 400;
+  font-size: 22px;
+  margin: 0 0 10px;
+  color: var(--ink);
+}
+.mb-form { display: grid; gap: 12px; }
+.mb-form label {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  color: var(--ink-light);
+}
+.mb-form textarea,
+.mb-form input {
+  width: 100%;
+  font-family: var(--font-hand);
+  font-size: 19px;
+  line-height: 1.6;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  padding: 6px 2px;
+  transition: border-color 0.2s ease;
+}
+.mb-form textarea { min-height: 74px; resize: vertical; }
+.mb-form textarea:focus,
+.mb-form input:focus {
+  outline: none;
+  border-bottom-color: var(--accent);
+}
+.mb-form textarea::placeholder,
+.mb-form input::placeholder {
+  color: var(--ink-faded);
+  font-family: var(--font-serif);
+  font-size: 14px;
+}
+/* 校验失败：整张便签抖一下 */
+.mb-form textarea.invalid { border-bottom-color: var(--accent); }
+.mb-note.shake { animation: mbShake 0.4s ease; }
+@keyframes mbShake {
+  0%, 100% { transform: rotate(-1deg) translateX(0); }
+  25% { transform: rotate(-1deg) translateX(-6px); }
+  50% { transform: rotate(-1deg) translateX(5px); }
+  75% { transform: rotate(-1deg) translateX(-3px); }
+}
+.mb-error { margin: 0; font-size: 13px; color: var(--accent); }
+
+.mb-form-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.mb-count {
+  font-family: var(--font-type);
+  font-size: 12px;
+  color: var(--ink-faded);
+  transition: color 0.2s ease;
+}
+.mb-count.near { color: var(--accent); }
+/* 提交按钮做成一枚小印章 */
+.mb-submit {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  color: var(--stamp);
+  background: none;
+  border: 2px solid var(--stamp);
+  border-radius: var(--radius);
+  padding: 7px 16px;
+  transform: rotate(-1.5deg);
+  opacity: 0.9;
+  position: relative;
+  top: 0;
+  /* 悬停/按下都用 top 抬一抬，不再 scale：
+     缩放会把「登记」两个字栅格化后重新采样，鼠标一上去字就糊一下 */
+  transition: top 0.18s ease, opacity 0.25s ease;
+}
+.mb-submit:hover, .mb-submit:focus-visible { top: -2px; opacity: 1; }
+.mb-submit:active { top: 1px; }
+.mb-reset-row { margin: 12px 0 0; text-align: right; }
+.mb-reset {
+  font-family: var(--font-type);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  color: var(--ink-faded);
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 5px 12px;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.mb-reset:hover { color: var(--accent); border-color: var(--accent); }
+
+/* 提交后的「卡片翻转」：整张便签绕竖轴转一圈，回到原来的朝向。
+   转 360 度而不是翻到背面，这样表单内容不会以镜像状态停在半路。 */
+.mb-note.is-flipping { animation: cardFlip 1.15s cubic-bezier(0.4, 0, 0.3, 1) both; }
+@keyframes cardFlip {
+  0%   { transform: rotate(-1deg) rotateY(0deg); }
+  8%   { transform: rotate(-1deg) rotateY(-14deg); }
+  50%  { transform: rotate(-1deg) rotateY(180deg); }
+  92%  { transform: rotate(-1deg) rotateY(346deg); }
+  100% { transform: rotate(-1deg) rotateY(360deg); }
+}
+
+/* 到访章：盖在便签右上角，带日期 */
+.visit-stamp {
+  position: absolute;
+  right: 10px;
+  top: -14px;
+  z-index: 3;
+  font-family: var(--font-serif);
+  font-size: 12px;
+  line-height: 1.3;
+  letter-spacing: 0.14em;
+  text-align: center;
+  color: var(--stamp);
+  border: 2px solid var(--stamp);
+  border-radius: var(--radius);
+  padding: 4px 9px 3px;
+  background: rgba(232, 219, 169, 0.72);
+  transform: rotate(-8deg);
+  opacity: 0;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(circle, #000 68%, rgba(0, 0, 0, 0.4) 69%, transparent 100%);
+  mask-image: radial-gradient(circle, #000 68%, rgba(0, 0, 0, 0.4) 69%, transparent 100%);
+  -webkit-mask-size: 4px 4px;
+  mask-size: 4px 4px;
+}
+.visit-stamp b {
+  display: block;
+  font-family: var(--font-type);
+  font-size: 10.5px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--stamp);
+}
+.visit-stamp.is-stamping { animation: visitDown 0.5s ease both; }
+@keyframes visitDown {
+  0% { opacity: 0; transform: rotate(-8deg) scale(1.7); }
+  55% { opacity: 1; transform: rotate(-8deg) scale(0.9); }
+  100% { opacity: 0.92; transform: rotate(-8deg) scale(1); }
+}
+/* 已经到访过：章一直留着 */
+.visit-stamp.is-collected { opacity: 0.92; }
+
+/* =========================================================
+   页边批注：铅笔手写的联系方式
+   ========================================================= */
+.mb-side {
+  font-family: var(--font-hand);
+  font-size: 19px;
+  line-height: 1.9;
+  color: var(--ink-light);
+  padding-left: 16px;
+  border-left: 2px solid var(--red-margin);
+}
+.mb-side h3 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.16em;
+  color: var(--ink-faded);
+  margin: 0 0 8px;
+}
+.mb-side ul { list-style: none; margin: 0; padding: 0; }
+.mb-side li { position: relative; padding-left: 18px; margin: 3px 0; }
+.mb-side li::before { content: "—"; position: absolute; left: 0; color: var(--pencil); }
+.mb-side a { border-bottom: 1px solid var(--rule); }
+.mb-side a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* 版权页：全书最后一行的印刷信息（旧版是独立页脚，现在收在最后一页末尾） */
+.colophon-slim {
+  margin-top: 26px;
+  border-top: 1px solid var(--rule);
+  padding-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+  font-family: var(--font-type);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--ink-faded);
+}
+.colophon-links { display: flex; gap: 16px; margin: 10px 0 0; flex-wrap: wrap; }
+.colophon-links button {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--ink-light);
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  padding: 1px 0;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.colophon-links button:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* 没有 JavaScript 时的说明 */
+.noscript-note {
+  margin: 18px 0 0;
+  padding-left: 14px;
+  border-left: 2px solid var(--red-margin);
+  font-size: 14px;
+  color: var(--ink-light);
+}
+
+/* =========================================================
+   手作零件：藏书票 / 藏书章 / 胶带 / 修正带 / 铅笔圈注
+   （沿用旧版第 3 课那张样式表里的做法）
+   ========================================================= */
+/* 藏书票 EX LIBRIS（贴在封面的小方标签） */
+.exlibris {
+  font-family: var(--font-type);
+  font-size: 10.5px;
+  letter-spacing: 0.24em;
+  color: var(--ink-faded);
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 8px 12px 7px;
+  text-align: center;
+  position: relative;
+  transition: color 0.24s ease, border-color 0.24s ease;
+}
+/* 藏书票内框：一道极细的双线，像老式贴纸 */
+.exlibris::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid var(--rule);
+  pointer-events: none;
+}
+.exlibris b {
+  display: block;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  color: var(--ink-light);
+  margin-top: 3px;
+}
+.cover-foot:hover .exlibris { color: var(--ink-light); border-color: var(--ink-faded); }
+
+/* 藏书章（红色方章，点一下重新盖印） */
+.stamp {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  letter-spacing: 0.18em;
+  color: var(--stamp);
+  background: none;
+  border: 2px solid var(--stamp);
+  border-radius: var(--radius);
+  padding: 7px 13px;
+  cursor: pointer;
+  transform: rotate(-6deg);
+  opacity: 0.86;
+  /* 只过渡不透明度，不缩放：章面上的字不会被重新采样。
+     （盖章那一下的 stampDown 动画是主动点出来的，保留） */
+  transition: opacity 0.3s ease;
+  /* 半调网点做遮罩：让章面有斑驳的漏印感 */
+  -webkit-mask-image: radial-gradient(circle, #000 68%, rgba(0, 0, 0, 0.4) 69%, transparent 100%);
+  mask-image: radial-gradient(circle, #000 68%, rgba(0, 0, 0, 0.4) 69%, transparent 100%);
+  -webkit-mask-size: 4px 4px;
+  mask-size: 4px 4px;
+}
+.stamp:hover, .stamp:focus-visible { opacity: 1; }
+.stamp.stamping { animation: stampDown 0.45s ease; }
+
+/* 胶带（贴在照片 / 便签上那一条） */
+.taped::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  width: 66px;
+  height: 22px;
+  /* 负 z-index：胶带压在纸的底色之上、文字之下，不会挡住标题 */
+  z-index: -1;
+  background: var(--tape);
+  border-left: 1px dashed rgba(255, 255, 255, 0.55);
+  border-right: 1px dashed rgba(255, 255, 255, 0.55);
+  transform: translateX(-50%) rotate(-3deg);
+  transition: transform 0.25s ease;
+  pointer-events: none;
+}
+.taped:hover::before, .taped:focus-within::before {
+  transform: translateX(-50%) rotate(3deg) translateY(-3px);
+}
+.cover-photo.taped::before { top: -12px; left: 50%; width: 74px; }
+/* 便签比便利贴宽，胶带相应加长 */
+.mb-note.taped::before { width: 118px; }
+
+/* 修正带（贴在草稿页上的一条白胶带，悬停时抬起） */
+.whiteout {
+  position: absolute;
+  right: 14px;
+  top: -6px;
+  width: 92px;
+  height: 20px;
+  background: rgba(255, 253, 248, 0.92);
+  border: 1px solid rgba(42, 38, 34, 0.1);
+  border-radius: 1px;
+  transform: rotate(-4deg);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  pointer-events: auto;
+  cursor: default;
+}
+.whiteout:hover {
+  transform: rotate(-4deg) translateY(-3px) scale(1.04);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 铅笔圈注：进这一页时描出来 */
+.loop-wrap { position: relative; display: inline-block; }
+.pencil-loop {
+  position: absolute;
+  left: -10px;
+  top: -7px;
+  width: calc(100% + 20px);
+  height: calc(100% + 14px);
+  overflow: visible;
+  pointer-events: none;
+  /* pathLength="1" 让描边长度归一，dasharray 直接写 1 */
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1.1s ease;
+}
+.pencil-loop.drawn { stroke-dashoffset: 0; }
+
+/* =========================================================
+   角标：底部这一条让读者始终知道「我在哪、还剩多少、集了多少」
+   「第 3 页 / 共 8 页 · 技能」点一下弹出目次，刻度可直接跳页。
+   ========================================================= */
+.folio-bar {
+  position: fixed;
+  left: 50%;
+  bottom: var(--bar-offset);
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px 8px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  /* 两侧要给纸角让位，别被它们压住 */
+  max-width: calc(100% - var(--corner-w) * 2 - 28px);
+}
+.folio-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+/* 明确的「上一页 / 下一页」按钮。
+   只靠纸角的话，第一次来的人根本不知道这本书能翻。 */
+.folio-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-serif);
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: 0.1em;
+  color: var(--ink-light);
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 4px 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.folio-step:hover { color: var(--accent); border-color: var(--accent); background: var(--paper); }
+.folio-step[disabled] { opacity: 0.4; cursor: default; }
+.folio-step[disabled]:hover {
+  color: var(--ink-light);
+  border-color: var(--rule);
+  background: var(--paper-deep);
+}
+/* 按钮上的箭头也用 CSS 画 */
+.step-arrow {
+  width: 8px;
+  height: 8px;
+  border-top: 1.7px solid currentColor;
+  border-right: 1.7px solid currentColor;
+}
+.folio-step--prev .step-arrow { transform: rotate(-135deg); }
+.folio-step--next .step-arrow { transform: rotate(45deg); }
+.folio-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-serif);
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.folio-open:hover { color: var(--accent); border-bottom-color: var(--accent); }
+.folio-open b { color: var(--accent); font-weight: 600; }
+/* 让「点这里开目录」这件事看得出来 */
+.folio-toc-cue {
+  font-family: var(--font-type);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  color: var(--accent);
+  border: 1px solid rgba(140, 59, 46, 0.45);
+  border-radius: var(--radius);
+  padding: 1px 6px;
+}
+/* 进度刻度：读过的是砖红，正在读的加长加深，没读过的只是淡铅线 */
+.folio-ticks {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.folio-ticks button {
+  display: block;
+  width: 15px;
+  height: 6px;
+  padding: 0;
+  background: var(--rule);
+  border: 0;
+  border-radius: 1px;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.2s ease;
+}
+.folio-ticks button:hover { transform: scaleY(1.6); }
+.folio-ticks li.is-read button { background: var(--accent); opacity: 0.55; }
+.folio-ticks li.is-current button { background: var(--stamp); opacity: 1; width: 24px; }
+
+/* =========================================================
+   纸角翻页：右下 = 下一页，左下 = 上一页
+   可点区域比看见的折角大，鼠标靠近就能翻
+   ========================================================= */
+.page-corner {
+  position: fixed;
+  bottom: 0;
+  width: var(--corner-w);
+  height: var(--corner-h);
+  z-index: 35;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.page-corner--prev { left: 0; }
+.page-corner--next { right: 0; }
+/* 折角本身：一角翘起的纸。
+   渐变要用比桌面更亮的纸色，否则跟桌面色一样、完全看不出这一角被掀起来了 */
+.page-corner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.92;
+  transition: opacity 0.28s ease;
+}
+.page-corner--next::before {
+  background: linear-gradient(to bottom right, rgba(243, 234, 215, 0) 18%, var(--paper) 62%, var(--paper-edge));
+  clip-path: polygon(100% 20%, 100% 100%, 20% 100%);
+}
+.page-corner--prev::before {
+  background: linear-gradient(to bottom left, rgba(243, 234, 215, 0) 18%, var(--paper) 62%, var(--paper-edge));
+  clip-path: polygon(0 20%, 0 100%, 80% 100%);
+}
+.page-corner:hover::before,
+.page-corner:focus-visible::before { opacity: 1; }
+/* 折痕：一道斜线，让「这一角被翻起来」立得住 */
+.corner-crease {
+  position: absolute;
+  bottom: 0;
+  width: 280px;
+  height: 1.5px;
+  background: linear-gradient(to right, transparent, var(--ink-faded));
+  transform-origin: bottom right;
+  opacity: 0.72;
+  transition: opacity 0.28s ease;
+}
+.page-corner--next .corner-crease { right: 0; transform: rotate(-38deg); }
+.page-corner--prev .corner-crease { left: 0; transform: rotate(38deg) scaleX(-1); }
+.page-corner:hover .corner-crease { opacity: 0.95; }
+/* 纸角上的标签 */
+/* 做成贴在纸角上的一枚小签：原先只是一个淡颜色的小字，
+   第一次来的人根本看不出这是翻页入口。 */
+.corner-label {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-serif);
+  font-size: 16px;
+  letter-spacing: 0.14em;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 8px 15px;
+  /* 标签挪动改用 left/right/bottom 偏移，不用 transform：
+     这两个小签上写着「上一页 / 下一页」，是翻页的主要入口，字必须一直清楚 */
+  transition: color 0.25s ease, border-color 0.25s ease,
+    left 0.25s ease, right 0.25s ease, bottom 0.25s ease;
+}
+.page-corner--next .corner-label { right: 26px; bottom: 34px; }
+.page-corner--prev .corner-label { left: 26px; bottom: 34px; }
+.page-corner:hover .corner-label,
+.page-corner:focus-visible .corner-label { color: var(--accent); border-color: var(--accent); }
+.page-corner--next:hover .corner-label { right: 23px; bottom: 31px; }
+.page-corner--prev:hover .corner-label { left: 23px; bottom: 31px; }
+/* 箭头用 CSS 画，不依赖字体里的箭头字形 */
+.corner-arrow {
+  width: 10px;
+  height: 10px;
+  border-top: 1.8px solid currentColor;
+  border-right: 1.8px solid currentColor;
+}
+.page-corner--next .corner-arrow { transform: rotate(45deg); }
+.page-corner--prev .corner-arrow { transform: rotate(-135deg); }
+/* 键盘提示：宽屏才露出来（触屏没有方向键）。
+   箭头字形在自带子集字体里不一定有，所以键帽和箭头都用 CSS 画。 */
+.corner-hint {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-serif);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--ink-faded);
+  white-space: nowrap;
+}
+.page-corner--next .corner-hint { right: 28px; bottom: 12px; }
+.page-corner--prev .corner-hint { left: 28px; bottom: 12px; }
+.keycap {
+  position: relative;
+  display: inline-block;
+  width: 20px;
+  height: 17px;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: var(--paper-deep);
+}
+.keycap::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  width: 6px;
+  height: 6px;
+  border-top: 1.6px solid var(--ink-faded);
+  border-right: 1.6px solid var(--ink-faded);
+}
+.keycap--prev::before { left: 7px; transform: rotate(-135deg); }
+.keycap--next::before { left: 6px; transform: rotate(45deg); }
+
+/* 到头了：这一角收回去，点了也不动 */
+.page-corner[disabled] { cursor: default; opacity: 0.34; }
+.page-corner[disabled]:hover::before { opacity: 0.72; }
+.page-corner[disabled] .corner-label { color: var(--ink-faded); }
+.page-corner[disabled]:hover .corner-label { bottom: 34px; }
+/* 到头的那一侧标签不挪窝。左边只改 left、右边只改 right，
+   两个属性不同名，所以必须分开写 —— 合起来把 left/right 都设上会把标签拉宽。 */
+.page-corner--next[disabled]:hover .corner-label { right: 26px; }
+.page-corner--prev[disabled]:hover .corner-label { left: 26px; }
+
+/* =========================================================
+   目录弹层：一张摊开的目次页
+   ========================================================= */
+.toc-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(232, 220, 195, 0.94);
+  overflow-y: auto;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.28s ease, visibility 0s linear 0.28s;
+}
+.toc-overlay.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 0.3s ease, visibility 0s;
+}
+.toc-sheet {
+  width: min(560px, 100%);
+  margin: auto;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 34px 38px 26px;
+  /* 这里原来做「弹出来」的位移 + 微转（translateY(10px) rotate(-0.3deg)）后已删除：
+     目录上全是字，整张纸做 transform 动画会让字先糊一下。
+     进场效果交给外层 .toc-overlay 的淡入即可，文字全程清楚。 */
+}
+.toc-kicker {
+  margin: 0 0 4px;
+  font-family: var(--font-type);
+  font-size: 11px;
+  letter-spacing: 0.34em;
+  color: var(--ink-faded);
+}
+.toc-sheet h2 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: 0.1em;
+  margin: 0 0 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink);
+}
+.toc-list { list-style: none; margin: 0; padding: 0; }
+.toc-list li { border-bottom: 1px dotted var(--rule); }
+.toc-list li:last-child { border-bottom: 0; }
+.toc-list button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 30px auto 1fr auto;
+  gap: 4px 10px;
+  align-items: baseline;
+  text-align: left;
+  font-family: var(--font-serif);
+  font-size: 16px;
+  color: var(--ink);
+  background: none;
+  border: 0;
+  padding: 10px 4px;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+.toc-list button:hover,
+.toc-list button:focus-visible { color: var(--accent); background: rgba(42, 38, 34, 0.03); }
+.toc-no { font-family: var(--font-type); font-size: 12px; color: var(--ink-faded); }
+.toc-list .is-current button { color: var(--accent); font-weight: 600; }
+.toc-list .is-read .toc-pg { color: var(--accent); }
+.toc-dots { align-self: center; border-bottom: 1px dotted var(--rule); }
+.toc-pg { font-family: var(--font-type); font-size: 12.5px; color: var(--ink-faded); }
+.toc-now {
+  font-family: var(--font-serif);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--stamp);
+  border: 1px solid var(--stamp);
+  border-radius: 1px;
+  padding: 0 5px;
+  margin-left: 6px;
+  transform: rotate(-3deg);
+  display: inline-block;
+}
+.toc-foot {
+  margin: 16px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  font-family: var(--font-type);
+  font-size: 11.5px;
+  letter-spacing: 0.12em;
+  color: var(--ink-faded);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.toc-foot b { color: var(--accent); font-weight: 400; }
+.toc-close {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  color: var(--ink-light);
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.toc-close:hover { color: var(--accent); border-color: var(--accent); }
+
+/* =========================================================
+   提示条：像一张撕下来的小纸条
+   ========================================================= */
+.mb-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--bar-offset) + var(--bar-h) + 8px);
+  transform: translate(-50%, 16px);
+  max-width: 78vw;
+  padding: 10px 18px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  font-family: var(--font-serif);
+  font-size: 14px;
+  color: var(--ink);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 70;
+}
+.mb-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* =========================================================
+   响应式
+   ========================================================= */
+/* 窄到会压住正文：把书签收进角标条里 */
+@media (max-width: 1023px) {
+  .bookmark-tab { display: none; }
+}
+
+/* 手机 / 竖屏：纸角变小、角标条抬高，两者不再抢地方 */
+@media (max-width: 900px) {
+  :root {
+    --corner-w: 122px;
+    --corner-h: 96px;
+    --bar-h: 58px;
+    /* 窄屏的纸角变矮，角标条要抬到纸角上方去，底部留白随之变大 */
+    --bar-offset: calc(var(--corner-h) - 26px);
+  }
+  .running-header { left: 14px; top: 12px; font-size: 11.5px; }
+  .page-inner { padding: 62px 20px var(--bar-reserve); }
+  .folio-bar { max-width: calc(100% - 40px); }
+  .folio-open { font-size: 12.5px; }
+  .corner-label { font-size: 13px; padding: 6px 11px; }
+  .page-corner--next .corner-label { right: 14px; bottom: 22px; }
+  .page-corner--prev .corner-label { left: 14px; bottom: 22px; }
+  .corner-crease { width: 130px; }
+  .corner-hint { display: none; }          /* 触屏没有方向键，不显示键帽提示 */
+  .folio-step { font-size: 12.5px; padding: 5px 9px; gap: 6px; }
+  .folio-open { font-size: 12.5px; gap: 7px; }
+  .toc-sheet { padding: 26px 22px 20px; }
+}
+
+/* 很窄的手机：两颗翻页按钮只留箭头，靠 aria-label 说明 */
+@media (max-width: 480px) {
+  .folio-step { font-size: 0; padding: 6px 10px; gap: 0; }
+}
+
+@media (max-width: 720px) {
+  body { font-size: 16px; }
+  .sheet { padding: 26px 20px 22px; }
+  .cover-sheet { grid-template-columns: 1fr; padding: 30px 22px 26px; }
+  .cover-photo { grid-column: 1; grid-row: auto; margin: 0 0 6px; }
+  .cover-photo img { width: 116px; height: 116px; }
+  .cover-role { margin-bottom: 18px; }
+  .section-heading { padding-right: 68px; }
+  .section-heading h2 { font-size: 22px; }
+  .read-stamp { font-size: 12px; padding: 2px 7px; }
+  .profile-details { grid-template-columns: 1fr; gap: 4px 0; }
+  .profile-details dt { padding-top: 10px; }
+  .skills-list li { font-size: 19px; line-height: 30px; }
+  .section-content {
+    padding: 8px 14px 10px 20px;
+    background: repeating-linear-gradient(180deg, transparent 0 29px, var(--blue-line) 29px 30px);
+  }
+  .note { flex: 1 1 150px; padding: 18px 14px 15px; }
+  .note h3 { font-size: 21px; }
+  .mb-grid { grid-template-columns: 1fr; gap: 24px; }
+  .ledger-head, .ledger-row { grid-template-columns: 1fr; gap: 4px; }
+  .ledger-head span:last-child { display: none; }
+  .mb-side { font-size: 18px; }
+  .toc-list button { grid-template-columns: 24px auto 1fr auto; font-size: 15px; }
+}
+
+/* 屏幕不高（笔记本 / 手机横屏）：把纵向留白和数据统统收紧。
+   「留言板」那一页内容最多，收得最狠 —— 目标是让它真的落在一屏里，
+   而不是被底部那条固定角标压住。实在放不下时 .page 才内部滚动。 */
+@media (max-height: 880px) {
+  .page-inner { padding-top: 54px; }
+  .sheet { padding: 24px 32px 22px; }
+  .cover-sheet { padding: 36px 38px 28px; }
+  .section-heading { margin-bottom: 14px; padding-bottom: 9px; }
+  .section-heading h2 { font-size: 25px; }
+  .chapter h3 { margin-bottom: 20px; }
+  .chapter li { margin: 20px 0; }
+  .imprint-line { margin-top: 24px; }
+  .ledger-title { padding: 6px 12px; }
+  .ledger-head { padding: 4px 12px; }
+  .ledger-empty { padding: 10px 14px; }
+  .mb-grid { margin-top: 15px; }
+  .mb-note { padding: 20px 18px 16px; }
+  .mb-form { gap: 9px; }
+  .mb-form textarea { min-height: 54px; }
+  .mb-submit { padding: 6px 14px; font-size: 14px; }
+  .mb-reset-row { margin-top: 8px; }
+  .mb-side { font-size: 17.5px; line-height: 1.8; }
+  .colophon-slim { margin-top: 15px; padding-top: 9px; }
+  .colophon-links { margin-top: 6px; }
+}
+
+/* 留言板那一页内容最多（借书卡 + 便签 + 版权行），宽屏上单独收紧一档，
+   目标是「一条留言都还没有」时整页就落在一屏里。
+   窄屏不参与：那儿角标条被抬高、留白必须更大，需要时页内滚动即可。 */
+@media (min-width: 901px) {
+  #pg-message .page-inner { padding-top: 44px; padding-bottom: 80px; }
+  #pg-message .sheet { padding: 26px 34px 20px; }
+  #pg-message .section-heading { margin-bottom: 16px; padding-bottom: 10px; }
+  /* 别跟着上面那档放大：这一页本来就顶到屏幕底了 */
+  #pg-message .section-heading h2 { font-size: 26px; }
+  #pg-message .ledger-title { padding: 6px 12px; }
+  #pg-message .ledger-head { padding: 4px 12px; }
+  #pg-message .mb-grid { margin-top: 14px; }
+  #pg-message .mb-note { padding: 20px 20px 15px; }
+  #pg-message .mb-form { gap: 9px; }
+  #pg-message .mb-reset-row { margin-top: 8px; }
+  #pg-message .colophon-slim { margin-top: 14px; padding-top: 8px; }
+  #pg-message .colophon-links { margin-top: 5px; }
+}
+/* 屏幕不高（笔记本）再收紧第二档 */
+@media (min-width: 901px) and (max-height: 880px) {
+  #pg-message .sheet { padding: 20px 32px 16px; }
+  #pg-message .section-heading { margin-bottom: 8px; padding-bottom: 7px; }
+  #pg-message .ledger-title { padding: 2px 12px; }
+  #pg-message .ledger-head { padding: 3px 12px; }
+  #pg-message .mb-grid { margin-top: 8px; }
+  #pg-message .mb-note { padding: 17px 18px 13px; }
+  #pg-message .mb-form { gap: 7px; }
+  #pg-message .mb-reset-row { margin-top: 4px; }
+  #pg-message .colophon-slim { margin-top: 8px; padding-top: 6px; }
+  #pg-message .colophon-links { margin-top: 3px; }
+}
+
+/* 目录摊开时把常驻零件收起来：0.94 半透明的纸背下隐约透出角标和纸角会很乱。
+   这条必须放在 .page-corner[disabled] 之后 —— 权重相同，靠位置决胜。 */
+body.toc-open .folio-bar,
+body.toc-open .page-corner,
+body.toc-open .running-header,
+body.toc-open .bookmark-tab {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 键盘焦点统一成砖红细框，别用浏览器默认那个黑方框 */
+.toc-list button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.folio-open:focus-visible,
+.toc-close:focus-visible,
+.bookmark-tab:focus-visible,
+.cover-open:focus-visible,
+.resume-jump:focus-visible,
+.mb-submit:focus-visible,
+.mb-reset:focus-visible,
+.running-header button:focus-visible,
+.colophon-links button:focus-visible,
+.page-corner:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* 换页后焦点会落到这一页上（方便读屏和方向键），但不需要把框画出来 */
+.page-inner:focus { outline: none; }
+
+/* 减弱动效：不做翻页动画，直接换页 */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+  /* 不做翻页动画时，翻页那张纸连出现都不出现，直接换页 */
+  .leaf,
+  .leaf.is-turning { animation: none !important; visibility: hidden !important; }
+  .read-stamp.is-stamping,
+  .visit-stamp.is-stamping,
+  .mb-note.is-flipping,
+  .ledger-row.fresh,
+  .mb-note.shake,
+  .stamp.stamping,
+  .cover-pinyin.typing::after { animation: none !important; }
+  /* 不做动画时，章直接呈现为「已收集」的样子 */
+  .read-stamp.is-stamping,
+  .visit-stamp.is-stamping { opacity: 0.9; }
+  .pencil-loop { stroke-dashoffset: 0; }
+}
+
+/* =========================================================
+   没有 JavaScript 时的兜底：把整本书摊平，允许纵向滚动。
+   至少内容读得到，不会是一屏白纸。
+   ========================================================= */
+html:not(.js) html,
+html:not(.js) body { overflow: auto; height: auto; }
+html:not(.js) .book { position: static; perspective: none; }
+html:not(.js) .page {
+  position: static;
+  opacity: 1;
+  visibility: visible;
+  overflow: visible;
+}
+html:not(.js) .page-inner { padding: 30px 20px; }
+html:not(.js) .folio-bar,
+html:not(.js) .page-corner,
+html:not(.js) .bookmark-tab,
+html:not(.js) .read-stamp,
+html:not(.js) .resume-line { display: none; }
+html:not(.js) .sheet { margin-bottom: 26px; }
+
+/* 目录项里那句小注：沿用旧版对每个栏目的定位（目录 / 作者简介 / 速写本 / 借书卡…） */
+.toc-chapter {
+  grid-column: 2 / -1;
+  margin-top: -2px;
+  font-family: var(--font-serif);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--ink-faded);
+}
+  </style>
+ </head>
+ <body>
+  <!-- 键盘用户跳过常驻零件，直接进正文 -->
+  <a class="skip-link" href="#pg-profile">跳到正文</a>
+
+  <!-- 常驻零件：书名（点它回封面） -->
+  <div class="running-header">
+   <button type="button" data-step="home">
+    黄锦澜
+    <span class="dot">
+     ·
+    </span>
+    个人主页
+   </button>
+  </div>
+
+  <!-- 常驻零件：目录书签（从书口伸出来，点开目次） -->
+  <button aria-haspopup="dialog" class="bookmark-tab" type="button" data-open-toc="">
+   目 次
+  </button>
+
+  <!-- =======================================================
+       书：8 页叠在一起，同一时刻只显示一页
+       data-title   = 角标里显示的名字
+       data-chapter = 目录里那句小注（沿用旧版对每个栏目的定位）
+       ======================================================= -->
+  <div class="book">
+
+   <!-- 翻页纸：转场时绕书脊翻走的一张空白纸。
+        位置与大小由脚本按纸面量出来；平时藏着不显示。 -->
+   <div aria-hidden="true" class="leaf leaf--next" data-leaf></div>
+
+   <!-- 第 1 页 · 封面 =================================== -->
+   <section aria-label="第 1 页：封面" class="page is-current" data-chapter="书名页" data-page="1" data-title="封面" id="pg-cover">
+    <div class="page-inner page-inner--cover">
+     <div class="cover-sheet">
+      <div class="cover-main">
+       <p class="cover-kicker">
+        PORTFOLIO
+       </p>
+       <h1 class="cover-title">
+        黄锦澜
+       </h1>
+       <!-- 这行拼音由页面脚本用打字机效果逐字打出 -->
+       <p class="cover-pinyin" data-typewriter="">
+        huang jin lan
+       </p>
+       <p class="cover-role">
+        大模型应用开发专业 · 前端开发学习者
+       </p>
+       <dl class="cover-imprint">
+        <div>
+         <dt>
+          作者
+         </dt>
+         <dd>
+          黄锦澜
+         </dd>
+        </div>
+        <div>
+         <dt>
+          出版
+         </dt>
+         <dd>
+          珠海 · 2026
+         </dd>
+        </div>
+        <div>
+         <dt>
+          版次
+         </dt>
+         <dd>
+          第 1 版 · 课程练习
+         </dd>
+        </div>
+       </dl>
+      </div>
+      <!-- 贴页照片：方形、去圆角，用胶带斜贴在纸面上 -->
+      <figure class="cover-photo taped">
+       <img alt="黄锦澜的照片" height="140" src="tx.jpg" width="140"/>
+       <figcaption>
+        图 1 · 著者像
+       </figcaption>
+      </figure>
+      <!-- 翻页说明：第一次来的人得先知道这本书怎么翻 -->
+      <p class="cover-hint">
+       点两侧纸角、按方向键，或用底部的「上一页 / 下一页」都能翻页
+      </p>
+      <!-- 续读提示：上次读到哪儿。第一次来访时先藏着，由脚本决定是否露出来 -->
+      <p class="resume-line" hidden="">
+       你上次读到
+       <b data-resume-pos="">
+        第 2 页
+       </b>
+       <span class="dot">
+        ·
+       </span>
+       <b data-resume-name="">
+        关于我
+       </b>
+       <button class="resume-jump" data-resume-jump="" type="button">
+        续读
+       </button>
+      </p>
+      <div class="cover-foot">
+       <!-- 藏书票：老式贴纸，内框 + EX LIBRIS -->
+       <div class="exlibris">
+        EX LIBRIS
+        <b>
+         黄锦澜
+        </b>
+       </div>
+       <!-- 藏书章：点一下会重新盖一次 -->
+       <button class="stamp" type="button">
+        藏 书
+       </button>
+       <!-- 翻开内页：翻到第 2 页。箭头用 CSS 画，不依赖字体里的箭头字形 -->
+       <button class="cover-open" data-step="1" type="button">
+        翻开内页
+        <span aria-hidden="true" class="cover-open-cue">
+        </span>
+       </button>
+      </div>
+     </div>
+    </div>
+   </section>
+
+   <!-- 第 2 页 · 关于我 ================================== -->
+   <section aria-label="第 2 页：关于我" class="page" data-chapter="作者简介" data-page="2" data-title="关于我" id="pg-profile">
+    <div class="page-inner">
+     <div class="sheet">
+      <header class="section-heading">
+       <p aria-hidden="true" class="running-head">
+        黄锦澜 · 个人主页
+       </p>
+       <h2>
+        关于我
+       </h2>
+       <!-- 已阅章：进这一页时盖下来 -->
+       <span aria-hidden="true" class="read-stamp">
+        已阅
+       </span>
+      </header>
+      <dl class="profile-details">
+       <dt>
+        学习方向
+       </dt>
+       <dd>
+        HTML5、CSS3、JavaScript，正在学习 Git、数据库与网站部署。
+       </dd>
+       <dt>
+        学习阶段
+       </dt>
+       <dd>
+        在校学习
+       </dd>
+       <dt>
+        所在城市
+       </dt>
+       <dd>
+        珠海
+       </dd>
+       <dt>
+        联系
+       </dt>
+       <dd>
+        18927846419
+        <br/>
+        mdusbsssb@qq.com
+       </dd>
+       <dt>
+        学校地址
+       </dt>
+       <dd>
+        <a href="https://j.map.baidu.com/e6/IQd" rel="noopener" target="_blank">
+         广东省珠海市金湾区
+        </a>
+       </dd>
+      </dl>
+      <!-- 页边批注：手写在红色边距线外侧 -->
+      <p class="margin-note">
+       2026
+       <span class="dot">
+        ·
+       </span>
+       珠海
+      </p>
+     </div>
+    </div>
+   </section>
+
+   <!-- 第 3 页 · 教育与工作经历 ========================== -->
+   <section aria-label="第 3 页：教育与工作经历" class="page" data-chapter="目录" data-page="3" data-title="经历" id="pg-experience">
+    <div class="page-inner">
+     <div class="sheet">
+      <header class="section-heading">
+       <p aria-hidden="true" class="running-head">
+        黄锦澜 · 个人主页
+       </p>
+       <h2>
+        教育与工作经历
+       </h2>
+       <span aria-hidden="true" class="read-stamp">
+        已阅
+       </span>
+      </header>
+      <ol class="toc">
+       <li>
+        <span class="chapter">
+         广东科学技术职业学院 · 大模型应用开发专业
+        </span>
+        <time>
+         在读
+        </time>
+        <span class="dots">
+        </span>
+        <span class="toc-page">
+         p.1
+        </span>
+        <p class="detail">
+         学习网页开发，用项目记录成长。
+        </p>
+       </li>
+      </ol>
+     </div>
+    </div>
+   </section>
+
+   <!-- 第 4 页 · 技能与实践 ============================== -->
+   <section aria-label="第 4 页：技能与实践" class="page" data-chapter="横线草稿" data-page="4" data-title="技能" id="pg-skills">
+    <div class="page-inner">
+     <div class="sheet">
+      <header class="section-heading">
+       <p aria-hidden="true" class="running-head">
+        黄锦澜 · 个人主页
+       </p>
+       <h2>
+        技能与实践
+       </h2>
+       <span aria-hidden="true" class="read-stamp">
+        已阅
+       </span>
+      </header>
+      <div class="section-content">
+       <!-- 修正带：贴在草稿页上的一条白胶带，鼠标移上去会翘起来 -->
+       <span aria-hidden="true" class="whiteout">
+       </span>
+       <!-- TASK-HTML：复制一个 li 就能增加一条自己的技能。 -->
+       <ul class="skills-list">
+        <li>
+         <span class="loop-wrap">
+          <strong>
+           网页内容
+          </strong>
+          <!-- 铅笔圈注：pathLength="1" 让描边长度归一，进这一页后被描出来 -->
+          <svg aria-hidden="true" class="pencil-loop" preserveAspectRatio="none" viewBox="0 0 100 40">
+           <ellipse cx="50" cy="20" fill="none" pathLength="1" rx="47" ry="17" stroke="#7a746a" stroke-width="1.6"/>
+          </svg>
+         </span>
+         HTML5 结构、图片、链接。
+        </li>
+        <li>
+         <strong>
+          页面样式
+         </strong>
+         CSS3 字体、颜色、响应式布局。
+        </li>
+        <li>
+         <strong>
+          开发过程
+         </strong>
+         JavaScript、Git、检查与部署。
+        </li>
+       </ul>
+      </div>
+     </div>
+    </div>
+   </section>
+
+   <!-- 第 5 页 · 兴趣爱好 ================================ -->
+   <section aria-label="第 5 页：兴趣爱好" class="page" data-chapter="速写本" data-page="5" data-title="兴趣" id="pg-interests">
+    <div class="page-inner">
+     <div class="sheet">
+      <header class="section-heading">
+       <p aria-hidden="true" class="running-head">
+        黄锦澜 · 个人主页
+       </p>
+       <h2>
+        兴趣爱好
+       </h2>
+       <span aria-hidden="true" class="read-stamp">
+        已阅
+       </span>
+      </header>
+      <ul aria-label="兴趣爱好速写本" class="sketchbook">
+       <li class="note taped">
+        <span aria-hidden="true" class="note-ico">
+         <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
+          <path d="M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.5 16.2z"/>
+          <path d="M15.4 6.2l2.4 2.4"/>
+         </svg>
+        </span>
+        <h3>
+         追剧
+        </h3>
+        <p>
+         熬夜追剧一时爽,一直追一直爽。
+        </p>
+       </li>
+       <li class="note taped">
+        <span aria-hidden="true" class="note-ico">
+         <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
+          <path d="M9 17.5V5.6l10-2v11.9"/>
+          <ellipse cx="6.6" cy="17.8" rx="2.6" ry="2.2"/>
+          <ellipse cx="16.6" cy="15.8" rx="2.6" ry="2.2"/>
+         </svg>
+        </span>
+        <h3>
+         音乐
+        </h3>
+        <p>
+         人类的生命因音乐而恒长。
+        </p>
+       </li>
+       <!-- 摄影这张贴纸是一扇门：整张可点，通向另一本册子《拍照手札》 -->
+       <li class="note note--link taped">
+        <a class="note-hit" href="https://calista-lan.github.io/photography-Lan/" rel="noopener noreferrer" target="_blank">
+         <span aria-hidden="true" class="note-ico">
+          <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
+           <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h2l1.3-2h6.4L16.5 6h2A2.5 2.5 0 0 1 21 8.5v9A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5z"/>
+           <circle cx="12" cy="13" r="3.6"/>
+          </svg>
+         </span>
+         <h3>
+          摄影
+         </h3>
+         <p>
+          “记录是为了抵抗遗忘”
+         </p>
+         <span class="note-flag">
+          另有一本《拍照手札》
+          <span class="sr-only">
+           （在新窗口打开）
+          </span>
+         </span>
+        </a>
+       </li>
+       <li class="note taped">
+        <span aria-hidden="true" class="note-ico">
+         <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
+          <path d="M5.2 9.4 4 4.2l4.4 2.4"/>
+          <path d="M18.8 9.4 20 4.2l-4.4 2.4"/>
+          <path d="M12 6.6a6.6 6.6 0 0 1 6.6 6.6c0 3.3-3 5.6-6.6 5.6s-6.6-2.3-6.6-5.6A6.6 6.6 0 0 1 12 6.6z"/>
+          <path d="M9.6 12.6h.01M14.4 12.6h.01"/>
+          <path d="M11.2 15.2h1.6"/>
+         </svg>
+        </span>
+        <h3>
+         动物
+        </h3>
+        <p>
+         “我可以转而与动物为伍”
+        </p>
+       </li>
+      </ul>
+     </div>
+    </div>
+   </section>
+
+   <!-- 第 6 页 · 学习与实践 ============================== -->
+   <section aria-label="第 6 页：学习与实践" class="page" data-chapter="章节正文" data-page="6" data-title="目标" id="pg-goal">
+    <div class="page-inner">
+     <div class="sheet">
+      <header class="section-heading">
+       <p aria-hidden="true" class="running-head">
+        黄锦澜 · 个人主页
+       </p>
+       <h2>
+        学习与实践
+       </h2>
+       <span aria-hidden="true" class="read-stamp">
+        已阅
+       </span>
+      </header>
+      <div class="chapter">
+       <h3>
+        本学期目标
+       </h3>
+       <ol>
+        <li>
+         每次课完成一个可运行的小改动。
+        </li>
+        <li>
+         能解释自己修改的 HTML、CSS 和 JavaScript。
+        </li>
+        <li>
+         使用 Git 记录版本，让作品能被别人访问。
+        </li>
+       </ol>
+      </div>
+      <p class="imprint-line">
+       <span>
+        本课练习 · 第 1 版
+       </span>
+       <span>
+        2026
+       </span>
+      </p>
+     </div>
+    </div>
+   </section>
+
+   <!-- 第 7 页 · 学习记录 ================================ -->
+   <section aria-label="第 7 页：学习记录" class="page" data-chapter="书眉与脚注" data-page="7" data-title="记录" id="pg-records">
+    <div class="page-inner">
+     <div class="sheet">
+      <header class="section-heading">
+       <p aria-hidden="true" class="running-head">
+        黄锦澜 · 个人主页
+       </p>
+       <h2>
+        学习记录
+       </h2>
+       <span aria-hidden="true" class="read-stamp">
+        已阅
+       </span>
+      </header>
+      <div class="chapter">
+       <h3>
+        我的记录
+       </h3>
+       <ol>
+        <li>
+         完成第一张个人主页。
+        </li>
+        <li>
+         后续在这里补充自己的真实成果。
+        </li>
+       </ol>
+      </div>
+      <p class="imprint-line">
+       <span>
+        本课练习 · 第 1 版
+       </span>
+       <span>
+        2026
+       </span>
+      </p>
+     </div>
+    </div>
+   </section>
+
+   <!-- 第 8 页 · 留言板 ================================== -->
+   <section aria-label="第 8 页：留言板" class="page" data-chapter="借书卡" data-page="8" data-title="留言" id="pg-message">
+    <div class="page-inner">
+     <div class="sheet">
+      <header class="section-heading">
+       <p aria-hidden="true" class="running-head">
+        黄锦澜 · 个人主页
+       </p>
+       <h2>
+        留言板
+       </h2>
+       <span aria-hidden="true" class="read-stamp">
+        已阅
+       </span>
+      </header>
+      <!-- 借书卡：每条留言是一行登记记录 -->
+      <div class="ledger">
+       <p class="ledger-title" id="ledger-title">
+        借书卡 · 来访登记
+       </p>
+       <div aria-hidden="true" class="ledger-head">
+        <span>
+         日期
+        </span>
+        <span>
+         留言
+        </span>
+       </div>
+       <ol aria-labelledby="ledger-title" class="ledger-rows" data-ledger="">
+       </ol>
+       <!-- 空状态：一条留言都还没有时显示（不放任何示例数据） -->
+       <p class="ledger-empty" data-ledger-empty="" hidden="">
+        还没有人留言 —— 第一行由你来写。
+       </p>
+      </div>
+      <div class="mb-grid">
+       <!-- 便签：贴在页边的一张黄纸，写留言用 -->
+       <div class="mb-note taped">
+        <!-- 到访章：提交后盖上来，带日期 -->
+        <span aria-hidden="true" class="visit-stamp">
+         到访
+         <b data-visit-date="">
+         </b>
+        </span>
+        <h3>
+         写一张留言
+        </h3>
+        <form class="mb-form" novalidate="">
+         <label for="mb-message">
+          留言内容
+         </label>
+         <textarea id="mb-message" maxlength="200" name="message" placeholder="想说点什么？" required=""></textarea>
+         <label for="mb-contact">
+          你的联系方式（选填，不会公开显示）
+         </label>
+         <input id="mb-contact" maxlength="40" name="contact" placeholder="邮箱 / QQ / 微信"/>
+         <p class="mb-error" hidden="">
+          先写点内容再贴上来吧～
+         </p>
+         <div class="mb-form-foot">
+          <span class="mb-count">
+           <span data-count="">
+            0
+           </span>
+           / 200
+          </span>
+          <button class="mb-submit" type="submit">
+           贴到借书卡上
+          </button>
+         </div>
+         <p class="mb-reset-row">
+          <button class="mb-reset" type="button">
+           清空我贴的留言
+          </button>
+         </p>
+        </form>
+       </div>
+       <!-- 页边批注：铅笔手写的联系方式 -->
+       <aside class="mb-side">
+        <h3>
+         也可以直接找我
+        </h3>
+        <ul>
+         <li>
+          <a href="tel:18927846419">
+           18927846419
+          </a>
+         </li>
+         <li>
+          QQ
+          <span class="dot">
+           ·
+          </span>
+          2975415609
+         </li>
+         <li>
+          <a href="mailto:mdusbsssb@qq.com">
+           mdusbsssb@qq.com
+          </a>
+         </li>
+         <li>
+          微信
+          <span class="dot">
+           ·
+          </span>
+          Cshinipapa
+         </li>
+         <li>
+          <a href="https://j.map.baidu.com/e6/IQd" rel="noopener" target="_blank">
+           广东省珠海市金湾区
+          </a>
+         </li>
+        </ul>
+       </aside>
+      </div>
+      <noscript>
+       <p class="noscript-note">
+        留言板需要 JavaScript 才能登记留言；其余内容不加载脚本也能正常阅读。
+       </p>
+      </noscript>
+      <!-- 版权页：全书最后一行印刷信息 + 两个去处 -->
+      <p class="colophon-slim">
+       <span>
+        黄锦澜 · 个人主页
+       </span>
+       <span>
+        黄锦澜
+       </span>
+       <span>
+        珠海 · 2026
+       </span>
+       <span>
+        第 1 版 · 课程练习
+       </span>
+      </p>
+      <p class="colophon-links">
+       <button data-step="home" type="button">
+        回到封面
+       </button>
+       <button data-open-toc="" type="button">
+        翻到目录
+       </button>
+      </p>
+     </div>
+    </div>
+   </section>
+
+  </div>
+
+  <!-- 角标：我在哪 / 还剩多少 / 集了多少 -->
+  <nav aria-label="翻页与进度" class="folio-bar">
+   <div class="folio-row">
+    <button aria-label="上一页" class="folio-step folio-step--prev" data-step="-1" disabled="" type="button">
+     <span aria-hidden="true" class="step-arrow">
+     </span>
+     上一页
+    </button>
+    <button aria-haspopup="dialog" class="folio-open" data-open-toc="" type="button">
+     <span aria-live="polite" data-folio-text="">
+      第 1 页 / 共 8 页 · 封面
+     </span>
+     <b class="folio-toc-cue">
+      目次
+     </b>
+    </button>
+    <button aria-label="下一页" class="folio-step folio-step--next" data-step="1" type="button">
+     下一页
+     <span aria-hidden="true" class="step-arrow">
+     </span>
+    </button>
+   </div>
+   <!-- 进度刻度：8 个格子，读过点亮，点一下直接跳过去（由脚本按页数生成） -->
+   <ol class="folio-ticks" data-folio-ticks="">
+   </ol>
+  </nav>
+
+  <!-- 纸角翻页：左下 = 上一页，右下 = 下一页 -->
+  <button aria-label="上一页" class="page-corner page-corner--prev" data-step="-1" disabled="" type="button">
+   <span aria-hidden="true" class="corner-crease">
+   </span>
+   <span class="corner-label">
+    <span aria-hidden="true" class="corner-arrow">
+    </span>
+    上一页
+   </span>
+   <span aria-hidden="true" class="corner-hint">
+    <i class="keycap keycap--prev">
+    </i>
+    方向键也可翻页
+   </span>
+  </button>
+  <button aria-label="下一页" class="page-corner page-corner--next" data-step="1" type="button">
+   <span aria-hidden="true" class="corner-crease">
+   </span>
+   <span class="corner-label">
+    下一页
+    <span aria-hidden="true" class="corner-arrow">
+    </span>
+   </span>
+   <span aria-hidden="true" class="corner-hint">
+    <i class="keycap keycap--next">
+    </i>
+    方向键也可翻页
+   </span>
+  </button>
+
+  <!-- 目录弹层：一张摊开的目次页（点书签 / 角标 / 结语里的链接打开） -->
+  <div aria-hidden="true" aria-labelledby="toc-title" aria-modal="true" class="toc-overlay" data-toc="" role="dialog">
+   <div class="toc-sheet">
+    <p class="toc-kicker">
+     CONTENTS
+    </p>
+    <h2 id="toc-title">
+     目 次
+    </h2>
+    <ol class="toc-list" data-toc-list="">
+    </ol>
+    <p class="toc-foot">
+     <span>
+      已读
+      <b data-toc-read="">
+       0
+      </b>
+      / 8 页
+     </span>
+     <button class="toc-close" data-close-toc="" type="button">
+      合上目录
+     </button>
+    </p>
+   </div>
+  </div>
+
+  <!-- 提示条：像一张撕下来的小纸条 -->
+  <div aria-live="polite" class="mb-toast" role="status">
+  </div>
+
+  <script>
+/* =========================================================
+   翻页式主页 · 交互脚本
+   ① 翻页  ② 角标与刻度  ③ 目录弹层  ④ 键盘  ⑤ 滑动 / 点击分区
+   ⑥ 已阅章  ⑦ 阅读进度（localStorage）  ⑧ 打字机  ⑨ 纸片微倾
+   ⑩ 藏书章  ⑪ 铅笔圈注  ⑫ 借书卡留言（卡片翻转 + 到访章）
+   ========================================================= */
+(function () {
+  "use strict";
+
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var book = document.querySelector(".book");
+  if (!book) return;
+
+  /* 只认 .book 的直接子元素。不用全局 querySelectorAll(".page")：
+     页面里可能有别的元素也带 page 这个名字（旧版目录里的页码就撞过一次），
+     全局查会把它们也当成「一页」，页数、角标、目录跳转都会跟着错。 */
+  var pages = Array.prototype.filter.call(book.children, function (el) {
+    return el.classList.contains("page");
+  });
+  if (!pages.length) return;
+
+  var total = pages.length;
+  var current = 0;
+
+  /* ---------- 常用元素 ---------- */
+  var folioText = document.querySelector("[data-folio-text]");
+  var folioTicks = document.querySelector("[data-folio-ticks]");
+  var tocOverlay = document.querySelector("[data-toc]");
+  var tocList = document.querySelector("[data-toc-list]");
+  var tocRead = document.querySelector("[data-toc-read]");
+  var tocFootSpan = document.querySelector(".toc-foot span");
+  var tocCloser = document.querySelector("[data-close-toc]");
+  var prevCorner = document.querySelector(".page-corner--prev");
+  var nextCorner = document.querySelector(".page-corner--next");
+  var stepPrev = document.querySelector(".folio-step--prev");
+  var stepNext = document.querySelector(".folio-step--next");
+  var resumeLine = document.querySelector(".resume-line");
+  var resumePos = document.querySelector("[data-resume-pos]");
+  var resumeName = document.querySelector("[data-resume-name]");
+  var toast = document.querySelector(".mb-toast");
+
+  function titleOf(i) {
+    return pages[i].getAttribute("data-title") || "";
+  }
+  function pageIndexOfHash() {
+    var h = window.location.hash;
+    if (!h) return -1;
+    for (var i = 0; i < total; i++) {
+      if (h === "#" + pages[i].id) return i;
+    }
+    return -1;
+  }
+
+  /* =========================================================
+     ⑦ 阅读进度：记在浏览器本地，下次打开能接着读
+     ========================================================= */
+  var STORE_KEY = "hjl-book-progress-v1";
+  var visited = {};     // { "2": true }，键是页码（1 起）
+  var lastPage = 0;     // 上次读到第几页
+
+  function loadProgress() {
+    try {
+      var raw = window.localStorage.getItem(STORE_KEY);
+      if (!raw) return;
+      var o = JSON.parse(raw);
+      if (!o || typeof o !== "object") return;
+      if (o.visited && typeof o.visited === "object") {
+        Object.keys(o.visited).forEach(function (k) {
+          if (o.visited[k]) visited[k] = true;
+        });
+      }
+      if (typeof o.last === "number") lastPage = o.last;
+    } catch (err) {
+      /* 隐私模式 / 沙盒里读不到：退回内存态，功能照常，只是不记得 */
+    }
+  }
+  function saveProgress() {
+    visited[current + 1] = true;
+    try {
+      window.localStorage.setItem(
+        STORE_KEY,
+        JSON.stringify({ last: current + 1, visited: visited })
+      );
+    } catch (err) {}
+  }
+  function readCount() {
+    var n = 0;
+    Object.keys(visited).forEach(function (k) { if (visited[k]) n++; });
+    return n;
+  }
+
+  /* =========================================================
+     ① 翻页 · 一张纸绕书脊翻走
+     纸盖在原来那一页上掀走，页面在纸底下换掉 —— 换的那一下被纸盖着，
+     所以页面本身不需要任何淡入淡出（也就没有「有字的元素在动」）。
+     纸是完全空白的：有字的元素一旦进 transform，动画期间字会被
+     栅格化后重采样，整段都是糊的。
+     ========================================================= */
+  var TURN_MS = 720;      /* 与 CSS 里 .leaf 的 --turn 保持一致 */
+  var leaf = document.querySelector("[data-leaf]");
+  var leafTimer = null;
+
+  /* 一页里那张「纸」在视口里的位置：封面是 .cover-sheet，
+     其余页是 .sheet。visibility:hidden 不影响布局，所以量得到。 */
+  function paperRect(pageEl) {
+    var paper = pageEl.querySelector(".sheet, .cover-sheet");
+    if (!paper) return null;
+    var r = paper.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2) return null;
+    return r;
+  }
+
+  /* 把纸铺到「出发页 + 目标页」两张纸的并集上。
+     用并集是为了保证目标页在起始那一瞬间整张都被盖住 ——
+     封面那张纸比内页窄，只按出发页量的话，内页多出来的两条边
+     会先闪一下。 */
+  function turnLeaf(fromEl, toEl, back) {
+    if (!leaf) return;
+    var a = paperRect(fromEl);
+    var b = paperRect(toEl);
+    if (!a || !b) return;
+
+    var left = Math.min(a.left, b.left);
+    var top = Math.min(a.top, b.top);
+    var right = Math.max(a.right, b.right);
+    var bottom = Math.max(a.bottom, b.bottom);
+
+    leaf.style.left = left + "px";
+    leaf.style.top = top + "px";
+    leaf.style.width = right - left + "px";
+    leaf.style.height = bottom - top + "px";
+
+    /* 消失点放在翻动轴（书脊）那条竖线上：纸转到 90° 侧对镜头时
+       投影正好收成一条线，不会变成一块越转越大、还挂在屏幕边上的梯形。 */
+    book.style.perspectiveOrigin = (back ? right : left) + "px 50%";
+
+    leaf.classList.remove("leaf--next", "leaf--prev", "is-turning");
+    /* 同一帧里摘掉再加回同一个类，浏览器会当成没变过、动画不重播；
+       读一次 offsetWidth 逼它先结算一次样式，动画才会老实地重头放。 */
+    void leaf.offsetWidth;
+    leaf.classList.add(back ? "leaf--prev" : "leaf--next", "is-turning");
+
+    clearTimeout(leafTimer);
+    leafTimer = setTimeout(function () {
+      leaf.classList.remove("is-turning");
+    }, TURN_MS + 80);
+  }
+
+  function show(i, instant) {
+    i = Math.max(0, Math.min(total - 1, i));
+    if (i === current) return;
+
+    var to = pages[i];
+    var from = pages[current];
+
+    /* 先把目标页推回页首：否则量出来的纸会带着上一次留下的滚动偏移 */
+    to.scrollTop = 0;
+
+    if (!instant && !reduce) turnLeaf(from, to, i < current);
+
+    from.classList.remove("is-current");
+    to.classList.add("is-current");
+
+    current = i;
+    afterTurn(instant);
+  }
+
+  function afterTurn(instant) {
+    updateFolio();
+    updateCorners();
+    drawLoops();
+    stampRead();
+    saveProgress();
+    syncHash();
+    markToc();
+    if (isTocOpen()) closeToc();
+
+    var p = pages[current];
+    p.scrollTop = 0;
+    /* 换页后把焦点交给这一页：读屏能读到新内容，方向键也接着管用 */
+    if (!instant) {
+      var inner = p.querySelector(".page-inner");
+      if (inner) {
+        inner.setAttribute("tabindex", "-1");
+        try { inner.focus({ preventScroll: true }); } catch (err) { inner.focus(); }
+      }
+    }
+  }
+
+  /* 地址栏跟着当前页走，方便直接分享第 N 页。
+     file:// 下 replaceState 会因 origin 为 null 抛错，所以只静默尝试，
+     失败就算了——地址栏同步是加分项，不该影响翻页本身。 */
+  function syncHash() {
+    var id = pages[current].id;
+    if (!id) return;
+    var hash = "#" + id;
+    if (window.location.hash === hash) return;
+    try {
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, "", hash);
+      }
+    } catch (err) {}
+  }
+
+  /* =========================================================
+     ② 角标与刻度
+     「第 3 页 / 共 8 页 · 技能」+ 一排进度格子
+     ========================================================= */
+  function buildTicks() {
+    if (!folioTicks) return;
+    folioTicks.textContent = "";
+    pages.forEach(function (p, i) {
+      var li = document.createElement("li");
+      li.setAttribute("data-tick", String(i));
+      var b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("data-goto", String(i));
+      b.setAttribute("aria-label", "第 " + (i + 1) + " 页 " + titleOf(i));
+      li.appendChild(b);
+      folioTicks.appendChild(li);
+    });
+  }
+
+  function updateFolio() {
+    var t = titleOf(current);
+    if (folioText) {
+      folioText.textContent =
+        "第 " + (current + 1) + " 页 / 共 " + total + " 页" + (t ? " · " + t : "");
+    }
+    if (!folioTicks) return;
+    Array.prototype.forEach.call(folioTicks.children, function (li, i) {
+      li.classList.toggle("is-current", i === current);
+      li.classList.toggle("is-read", !!visited[i + 1] && i !== current);
+    });
+  }
+
+  function updateCorners() {
+    var atFirst = current === 0;
+    var atLast = current === total - 1;
+    if (prevCorner) prevCorner.disabled = atFirst;
+    if (nextCorner) nextCorner.disabled = atLast;
+    /* 角标条上那两颗按钮要跟着禁用：点了没反应会被当成坏了 */
+    if (stepPrev) stepPrev.disabled = atFirst;
+    if (stepNext) stepNext.disabled = atLast;
+  }
+
+  /* =========================================================
+     ③ 目录弹层
+     ========================================================= */
+  function buildToc() {
+    if (!tocList) return;
+    tocList.textContent = "";
+    pages.forEach(function (p, i) {
+      var li = document.createElement("li");
+      li.setAttribute("data-toc-item", String(i));
+
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.setAttribute("data-goto", String(i));
+
+      var no = document.createElement("span");
+      no.className = "toc-no";
+      no.textContent = (i + 1 < 10 ? "0" : "") + (i + 1);
+
+      var name = document.createElement("span");
+      name.className = "toc-name";
+      name.textContent = titleOf(i);
+
+      var dots = document.createElement("span");
+      dots.className = "toc-dots";
+
+      var pg = document.createElement("span");
+      pg.className = "toc-pg";
+      pg.textContent = "p." + (i + 1);
+
+      btn.appendChild(no);
+      btn.appendChild(name);
+      btn.appendChild(dots);
+      btn.appendChild(pg);
+
+      /* 小注：沿用旧版对每个栏目的定位（书名页 / 作者简介 / 速写本 / 借书卡…） */
+      var chapter = p.getAttribute("data-chapter");
+      if (chapter) {
+        var ch = document.createElement("span");
+        ch.className = "toc-chapter";
+        ch.textContent = chapter;
+        btn.appendChild(ch);
+      }
+
+      li.appendChild(btn);
+      tocList.appendChild(li);
+    });
+
+    /* 「共几页」交给真实页数，免得写死后跟页面对不上 */
+    if (tocFootSpan && tocRead) {
+      tocFootSpan.textContent = "";
+      tocFootSpan.appendChild(document.createTextNode("已读 "));
+      tocFootSpan.appendChild(tocRead);
+      tocFootSpan.appendChild(document.createTextNode(" / " + total + " 页"));
+    }
+  }
+
+  /* 页脚：给每张纸补一行版记。用的是页面上本来就有的真实信息
+     （data-page / data-chapter），不是编出来的内容。
+     首页是封面、末页已经有版权行，这两页不加。 */
+  function buildSheetFoot() {
+    pages.forEach(function (p, i) {
+      if (p.id === "pg-cover" || p.id === "pg-message") return;
+      var sheet = p.querySelector(".sheet");
+      if (!sheet || sheet.querySelector(".sheet-foot")) return;
+
+      var foot = document.createElement("p");
+      foot.className = "sheet-foot";
+
+      var left = document.createElement("span");
+      left.textContent = "§ " + (i + 1) + " · " +
+        (p.getAttribute("data-chapter") || titleOf(i));
+
+      var right = document.createElement("span");
+      right.textContent = "第 " + (i + 1) + " 页 / 共 " + total + " 页";
+
+      foot.appendChild(left);
+      foot.appendChild(right);
+      sheet.appendChild(foot);
+    });
+  }
+
+  function markToc() {
+    if (tocList) {
+      Array.prototype.forEach.call(tocList.children, function (li, i) {
+        li.classList.toggle("is-current", i === current);
+        li.classList.toggle("is-read", !!visited[i + 1]);
+        var nameEl = li.querySelector(".toc-name");
+        if (!nameEl) return;
+        var now = nameEl.querySelector(".toc-now");
+        if (i === current && !now) {
+          var s = document.createElement("span");
+          s.className = "toc-now";
+          s.textContent = "正在此页";
+          nameEl.appendChild(s);
+        } else if (i !== current && now) {
+          now.parentNode.removeChild(now);
+        }
+      });
+    }
+    if (tocRead) tocRead.textContent = String(readCount());
+  }
+
+  /* 弹层打开时把背景设为 inert：
+     键盘 Tab 不会跑到后面的书里去，点背景也只会合上目录 */
+  var background = [
+    book,
+    document.querySelector(".folio-bar"),
+    document.querySelector(".running-header"),
+    document.querySelector(".bookmark-tab"),
+    prevCorner,
+    nextCorner
+  ].filter(Boolean);
+
+  function setBackgroundInert(on) {
+    background.forEach(function (el) {
+      if (on) el.setAttribute("inert", "");
+      else el.removeAttribute("inert");
+    });
+  }
+
+  function isTocOpen() {
+    return !!(tocOverlay && tocOverlay.classList.contains("is-open"));
+  }
+
+  function openToc(trigger) {
+    if (!tocOverlay || isTocOpen()) return;
+    markToc();
+    tocOverlay.classList.add("is-open");
+    tocOverlay.setAttribute("aria-hidden", "false");
+    setBackgroundInert(true);
+    document.body.classList.add("toc-open");
+    tocOverlay.setAttribute("data-return-to", trigger ? "1" : "0");
+    /* 打开后焦点落在当前章节上，上下键可以直接换章 */
+    var cur = tocList && tocList.children[current];
+    var target = (cur && cur.querySelector("button")) || tocCloser;
+    if (target) {
+      try { target.focus({ preventScroll: true }); } catch (err) { target.focus(); }
+    }
+    openedBy = trigger || null;
+  }
+
+  var openedBy = null;
+
+  function closeToc() {
+    if (!tocOverlay || !isTocOpen()) return;
+    tocOverlay.classList.remove("is-open");
+    tocOverlay.setAttribute("aria-hidden", "true");
+    setBackgroundInert(false);
+    document.body.classList.remove("toc-open");
+    /* 焦点还给刚才打开它的那个按钮 */
+    if (openedBy) {
+      try { openedBy.focus({ preventScroll: true }); } catch (err) {}
+      openedBy = null;
+    }
+  }
+
+  /* =========================================================
+     ④ 键盘 + 点击
+     ========================================================= */
+  document.addEventListener("keydown", function (ev) {
+    var tag = (ev.target && ev.target.tagName) || "";
+    var typing = /^(INPUT|TEXTAREA|SELECT)$/.test(tag);
+    var key = ev.key;
+
+    if (key === "Escape" && isTocOpen()) {
+      ev.preventDefault();
+      closeToc();
+      return;
+    }
+
+    /* 目录开着：上下键在章节之间走，回车交给按钮自己处理 */
+    if (isTocOpen()) {
+      if (key === "ArrowDown" || key === "ArrowUp" || key === "Home" || key === "End") {
+        var items = Array.prototype.slice.call(tocList.querySelectorAll("button"));
+        if (!items.length) return;
+        var idx = items.indexOf(document.activeElement);
+        if (idx < 0) idx = current;
+        var n = key === "ArrowDown" ? idx + 1
+              : key === "ArrowUp" ? idx - 1
+              : key === "Home" ? 0 : items.length - 1;
+        n = Math.max(0, Math.min(items.length - 1, n));
+        ev.preventDefault();
+        items[n].focus();
+      }
+      return;
+    }
+
+    /* 在留言框里打字时不抢方向键，光标得能左右移动 */
+    if (typing) return;
+
+    if (key === "ArrowRight" || key === "PageDown") {
+      ev.preventDefault();
+      show(current + 1);
+    } else if (key === "ArrowLeft" || key === "PageUp") {
+      ev.preventDefault();
+      show(current - 1);
+    } else if (key === "Home") {
+      ev.preventDefault();
+      show(0);
+    } else if (key === "End") {
+      ev.preventDefault();
+      show(total - 1);
+    }
+  });
+
+  document.addEventListener("click", function (ev) {
+    var t = ev.target;
+    if (!t || !t.closest) return;
+
+    /* 目录项 / 进度格子：直接跳到那一页 */
+    var goto = t.closest("[data-goto]");
+    if (goto) {
+      ev.preventDefault();
+      show(parseInt(goto.getAttribute("data-goto"), 10));
+      return;
+    }
+
+    /* 上一页 / 下一页 / 回封面 */
+    var step = t.closest("[data-step]");
+    if (step) {
+      ev.preventDefault();
+      var v = step.getAttribute("data-step");
+      show(v === "home" ? 0 : current + parseInt(v, 10));
+      return;
+    }
+
+    /* 目录开合 */
+    var opener = t.closest("[data-open-toc]");
+    if (opener) {
+      ev.preventDefault();
+      openToc(opener);
+      return;
+    }
+    if (t.closest("[data-close-toc]")) {
+      ev.preventDefault();
+      closeToc();
+      return;
+    }
+    /* 点弹层的空白处也能合上 */
+    if (t === tocOverlay) {
+      closeToc();
+      return;
+    }
+
+    /* 封面上的「续读」 */
+    if (t.closest("[data-resume-jump]")) {
+      ev.preventDefault();
+      show(lastPage - 1);
+      return;
+    }
+
+    /* 跳过链接那种 #pg-xxx 锚点，也当成翻页 */
+    var anchor = t.closest('a[href^="#pg-"]');
+    if (anchor) {
+      var idx = -1;
+      for (var i = 0; i < total; i++) {
+        if ("#" + pages[i].id === anchor.getAttribute("href")) { idx = i; break; }
+      }
+      if (idx >= 0) {
+        ev.preventDefault();
+        show(idx);
+      }
+    }
+  });
+
+  /* 划动之后浏览器还会补一次 click，会误触链接 —— 把它吃掉 */
+  var suppressClick = false;
+  document.addEventListener("click", function (ev) {
+    if (!suppressClick) return;
+    suppressClick = false;
+    ev.preventDefault();
+    ev.stopPropagation();
+  }, true);
+
+  /* =========================================================
+     ⑤ 滑动翻页 / 点屏幕左右区域翻页（触屏）
+     ========================================================= */
+  var SWIPE_MIN = 46;
+  var gesture = null;
+
+  function isInteractive(el) {
+    return !!(el && el.closest &&
+      el.closest("a, button, input, textarea, select, label"));
+  }
+
+  document.addEventListener("pointerdown", function (ev) {
+    if (ev.pointerType !== "touch" || isTocOpen()) return;
+    gesture = { x: ev.clientX, y: ev.clientY, t: Date.now(), target: ev.target };
+  }, { passive: true });
+
+  document.addEventListener("pointerup", function (ev) {
+    if (ev.pointerType !== "touch" || !gesture || isTocOpen()) {
+      gesture = null;
+      return;
+    }
+    var g = gesture;
+    gesture = null;
+
+    var dx = ev.clientX - g.x;
+    var dy = ev.clientY - g.y;
+    var adx = Math.abs(dx);
+    var ady = Math.abs(dy);
+
+    /* 落在按钮 / 链接 / 输入框上的手势不当作翻页 */
+    if (isInteractive(g.target)) return;
+
+    /* 横向滑动：往左划 = 下一页，往右划 = 上一页 */
+    if (adx >= SWIPE_MIN && adx > ady * 1.4) {
+      suppressClick = true;
+      show(current + (dx < 0 ? 1 : -1));
+      return;
+    }
+
+    /* 轻点屏幕左右两侧（中间那块留给阅读本身的点击） */
+    if (adx < 12 && ady < 12 && Date.now() - g.t < 600) {
+      var ratio = ev.clientX / window.innerWidth;
+      if (ratio < 0.28) show(current - 1);
+      else if (ratio > 0.72) show(current + 1);
+    }
+  }, { passive: true });
+
+  /* =========================================================
+     ⑥ 已阅章 / ⑪ 铅笔圈注
+     ========================================================= */
+  function stampRead() {
+    var s = pages[current].querySelector(".read-stamp");
+    if (!s) return;
+    if (visited[current + 1]) {
+      /* 已经收集过的章：安静地待着，不再动 */
+      s.classList.remove("is-stamping");
+      s.classList.add("is-collected");
+      return;
+    }
+    if (reduce) {
+      s.classList.add("is-collected");
+      return;
+    }
+    s.classList.remove("is-collected", "is-stamping");
+    void s.offsetWidth;               /* 强制重排，让动画能连续触发 */
+    s.classList.add("is-stamping");
+    setTimeout(function () {
+      s.classList.remove("is-stamping");
+      s.classList.add("is-collected");
+    }, 520);
+  }
+
+  function drawLoops() {
+    Array.prototype.forEach.call(
+      pages[current].querySelectorAll(".pencil-loop"),
+      function (s) { s.classList.add("drawn"); }
+    );
+  }
+
+  /* =========================================================
+     ⑧ 打字机：封面的拼音逐字打出
+     ========================================================= */
+  var tw = document.querySelector("[data-typewriter]");
+  var twDone = false;
+
+  function runTypewriter() {
+    if (!tw || twDone) return;
+    twDone = true;
+    var full = tw.textContent.trim();
+    if (reduce || !full) return;
+    /* 先把完整文本交给屏幕阅读器，避免读到半截的拼音 */
+    tw.setAttribute("aria-label", full);
+    tw.textContent = "";
+    tw.classList.add("typing");
+    var i = 0;
+    var timer = setInterval(function () {
+      tw.textContent = full.slice(0, ++i);
+      if (i >= full.length) {
+        clearInterval(timer);
+        setTimeout(function () { tw.classList.remove("typing"); }, 1400);
+      }
+    }, 90);
+  }
+
+  /* =========================================================
+     ⑨ 纸片微倾：已整块移除
+     =========================================================
+     原来这里监听 pointermove，让封面跟着鼠标歪一点点。
+     删掉的原因：它对整张封面（含书名、拼音、出版信息、藏书票）每帧写一个新的、
+     带小数的 transform。浏览器遇到元素的 transform 在变，只能把这张纸上的字
+     先栅格化成一张位图，再拿着位图跟着变换缩放/重采样 —— 字就会发虚，
+     鼠标移开（transform 清空）才重新变清楚。这正是「鼠标扫过文字会模糊一下」的来源。
+     倾斜幅度只有 0.4 度，肉眼几乎看不出，代价却是全页文字糊，不值。
+     CSS 里静态的 rotate(-0.4deg) 不在动画里，字是清楚的，保留。
+
+     —— 由此得出一条全站规则 ——
+     凡是「里面有字」的元素，悬停/位移一律不要用 transform / scale 做动画，
+     改用 top / left / right / bottom 这类只重画、不重采样的属性；
+     transform 动画只留给纯图形（纸角折痕、刻度条、胶带、修正带、纸片翻转等）。 */
+
+  /* =========================================================
+     ⑩ 藏书章：点一下重新盖一次
+     ========================================================= */
+  var stampBtn = document.querySelector(".stamp");
+  if (stampBtn) {
+    stampBtn.addEventListener("click", function () {
+      stampBtn.classList.remove("stamping");
+      void stampBtn.offsetWidth;
+      stampBtn.classList.add("stamping");
+    });
+  }
+
+  /* =========================================================
+     提示条
+     ========================================================= */
+  var toastTimer;
+  function showToast(msg) {
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove("show"); }, 2200);
+  }
+
+  /* =========================================================
+     ⑫ 借书卡留言：登记 / 本地保存 / 清空 / 卡片翻转 + 到访章
+     只登记真实来访者写的，不放任何示例数据。
+     ========================================================= */
+  var mbForm = document.querySelector(".mb-form");
+
+  if (mbForm) {
+    var MB_KEY = "hjl-message-board-v1";
+    var mbText = mbForm.querySelector("#mb-message");
+    var mbContact = mbForm.querySelector("#mb-contact");
+    var mbCount = mbForm.querySelector("[data-count]");
+    var mbError = mbForm.querySelector(".mb-error");
+    var mbNote = document.querySelector(".mb-note");
+    var visitStamp = document.querySelector(".visit-stamp");
+    var visitDate = document.querySelector("[data-visit-date]");
+    var ledger = document.querySelector("[data-ledger]");
+    var ledgerEmpty = document.querySelector("[data-ledger-empty]");
+    var mbReset = document.querySelector(".mb-reset");
+
+    function load() {
+      try {
+        var raw = window.localStorage.getItem(MB_KEY);
+        var arr = raw ? JSON.parse(raw) : [];
+        return Object.prototype.toString.call(arr) === "[object Array]" ? arr : [];
+      } catch (err) {
+        /* 隐私模式 / 沙盒里读不到，退回内存态，功能照常 */
+        return [];
+      }
+    }
+    function save(arr) {
+      try { window.localStorage.setItem(MB_KEY, JSON.stringify(arr)); } catch (err) {}
+    }
+    function pad(n) { return (n < 10 ? "0" : "") + n; }
+    function nowStamp() {
+      var d = new Date();
+      return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) +
+        " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+    }
+    function dateOf(s) {
+      /* "2026-09-28 15:40" → "2026-09-28" */
+      return String(s || "").slice(0, 10);
+    }
+
+    var messages = load();
+
+    function render(fresh) {
+      if (!ledger) return;
+      ledger.textContent = "";
+      messages.forEach(function (m) {
+        var li = document.createElement("li");
+        li.className = "ledger-row";
+        li.setAttribute("data-kind", "mine");
+
+        var d = document.createElement("span");
+        d.className = "ledger-date";
+        d.textContent = m.time || "—";
+
+        var t = document.createElement("span");
+        t.className = "ledger-text";
+        t.textContent = m.text;            /* 用 textContent 渲染，防 XSS */
+
+        li.appendChild(d);
+        li.appendChild(t);
+        ledger.appendChild(li);
+      });
+      if (ledgerEmpty) ledgerEmpty.hidden = messages.length > 0;
+      if (fresh) {
+        var first = ledger.querySelector(".ledger-row");
+        if (first) first.classList.add("fresh");
+      }
+    }
+
+    /* 到访章：盖在便签右上角，带日期 */
+    function showVisitStamp(animate, when) {
+      if (!visitStamp) return;
+      if (when && visitDate) visitDate.textContent = when;
+      visitStamp.classList.remove("is-stamping", "is-collected");
+      if (reduce || !animate) {
+        visitStamp.classList.add("is-collected");
+        return;
+      }
+      void visitStamp.offsetWidth;
+      visitStamp.classList.add("is-stamping");
+      setTimeout(function () {
+        visitStamp.classList.remove("is-stamping");
+        visitStamp.classList.add("is-collected");
+      }, 540);
+    }
+
+    /* 卡片翻转：绕竖轴转一整圈，收在原来的朝向上 */
+    function flipNote(done) {
+      if (!mbNote || reduce) {
+        if (done) done();
+        return;
+      }
+      mbNote.classList.remove("is-flipping");
+      void mbNote.offsetWidth;
+      mbNote.classList.add("is-flipping");
+      setTimeout(function () {
+        mbNote.classList.remove("is-flipping");
+        if (done) done();
+      }, 1160);
+    }
+
+    function countChars() {
+      if (!mbCount || !mbText) return;
+      var n = mbText.value.length;
+      mbCount.textContent = String(n);
+      /* 快写满 200 字时把计数器变成砖红，给个提醒 */
+      mbCount.classList.toggle("near", n > 170);
+    }
+
+    render();
+    countChars();
+    /* 之前到访过：章直接留着 */
+    if (messages.length) showVisitStamp(false, dateOf(messages[0].time));
+
+    if (mbText) {
+      mbText.addEventListener("input", function () {
+        countChars();
+        if (mbText.value.trim()) {
+          mbText.classList.remove("invalid");
+          mbError.hidden = true;
+        }
+      });
+      /* Ctrl / Cmd + Enter 快捷提交 */
+      mbText.addEventListener("keydown", function (ev) {
+        if ((ev.ctrlKey || ev.metaKey) && ev.key === "Enter") {
+          ev.preventDefault();
+          if (mbForm.requestSubmit) mbForm.requestSubmit();
+          else mbForm.dispatchEvent(new Event("submit", { cancelable: true }));
+        }
+      });
+    }
+
+    mbForm.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var text = mbText.value.trim();
+      if (!text) {
+        mbError.hidden = false;
+        mbText.classList.add("invalid");
+        if (mbNote) {
+          mbNote.classList.remove("shake");
+          void mbNote.offsetWidth;
+          mbNote.classList.add("shake");
+        }
+        mbText.focus();
+        showToast("留言还是空的哦～");
+        setTimeout(function () { mbText.classList.remove("invalid"); }, 600);
+        return;
+      }
+
+      var when = nowStamp();
+      messages.unshift({ text: text, contact: mbContact.value.trim(), time: when });
+      save(messages);
+      render(true);
+      mbForm.reset();
+      countChars();
+      mbError.hidden = true;
+
+      /* 卡片翻一圈，落下「到访」章和日期 */
+      flipNote(function () { showVisitStamp(true, dateOf(when)); });
+      showToast("已登记到借书卡上，谢谢你");
+    });
+
+    if (mbReset) {
+      mbReset.addEventListener("click", function () {
+        messages = [];
+        save(messages);
+        render();
+        if (visitStamp) visitStamp.classList.remove("is-stamping", "is-collected");
+        if (visitDate) visitDate.textContent = "";
+        showToast("借书卡已清空");
+      });
+    }
+  }
+
+  /* =========================================================
+     启动
+     ========================================================= */
+  loadProgress();
+  buildTicks();
+  buildToc();
+  buildSheetFoot();
+
+  /* 支持用 #pg-xxx 直接分享某一页；没有 hash 就从封面开始 */
+  var start = pageIndexOfHash();
+  current = start > 0 ? start : 0;
+  pages.forEach(function (p, i) {
+    p.classList.toggle("is-current", i === current);
+  });
+
+  afterTurn(true);
+  runTypewriter();
+
+  /* 续读提示：只在真的读过内页时露出来 */
+  if (resumeLine && lastPage >= 2 && lastPage <= total) {
+    if (resumePos) resumePos.textContent = "第 " + lastPage + " 页";
+    if (resumeName) resumeName.textContent = titleOf(lastPage - 1);
+    resumeLine.hidden = false;
+  }
+
+  /* 地址栏被手动改动 / 分享链接进来时，跟着换页 */
+  window.addEventListener("hashchange", function () {
+    var i = pageIndexOfHash();
+    if (i >= 0 && i !== current) show(i);
+  });
+})();
+  </script>
+
+
+ </body>
+</html>

@@ -1,0 +1,269 @@
+/*
+ * 撕票：封面底部的存根。
+ * 沿骑缝线按住往下撕，存根会撕下来落到封面下方，封面同时收拢、底边被啃出毛边；
+ * 再点一下存根就能贴回去。
+ * 全部用 CSS 渐变 / clip-path 画，不引入外部图片。
+ * 配套：tear-ticket.js 生成锯齿撕口，index.html 里的 .tear 结构。
+ */
+
+/* ---------- 封面：把下内边距借给存根；撕下后收回去，露出毛边 ---------- */
+.cover-sheet {
+  --tear-h: 78px;                          /* 存根总高：骑缝线 + 票面 */
+  --tear-line: 9px;                        /* 骑缝线距离盒顶的位置 */
+  --tear-fiber: rgba(255, 253, 247, 0.85); /* 撕口露出的纸芯 */
+  /* 覆盖 styles.css 里的下内边距，让票面一直贴到封面底边 */
+  padding-bottom: var(--tear-h);
+  transition: padding-bottom 0.55s cubic-bezier(0.3, 0.8, 0.35, 1);
+}
+/* 撕下之后封面收拢，毛边成为新的底边 */
+.cover-sheet.tear-open {
+  padding-bottom: 0;
+  border-bottom-color: transparent;
+}
+
+/* ---------- 撕票容器：钉在封面底边，不参与流式布局 ---------- */
+.tear {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--tear-h);
+  pointer-events: none;
+}
+/* 只有票面能接收鼠标，穿孔和撕痕纯装饰 */
+.tear > * {
+  pointer-events: none;
+}
+.tear-wrap {
+  pointer-events: auto;
+}
+
+/* ---------- 骑缝线：一排打孔 + 两侧各一个半圆缺口 ---------- */
+.tear-perf {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--tear-line) - 8px);
+  height: 16px;
+  /* 两层：孔本身 + 上缘偏 1px 的暗环，模拟孔的厚度 */
+  background-image:
+    radial-gradient(circle, var(--paper-edge) 0 1.9px, transparent 2.1px),
+    radial-gradient(circle, rgba(42, 38, 34, 0.18) 0 1.9px, transparent 2.1px);
+  background-size: 9px 16px;
+  background-position: center, 50% calc(50% - 1px);
+  background-repeat: repeat-x;
+  transition: opacity 0.4s ease;
+}
+/* 两侧半圆缺口：票券都有的那个咬口 */
+.tear-perf::before,
+.tear-perf::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 15px;
+  height: 15px;
+  margin-top: -7.5px;
+  border-radius: 50%;
+  background: var(--paper-edge);
+}
+.tear-perf::before {
+  left: -7.5px;
+}
+.tear-perf::after {
+  right: -7.5px;
+}
+/* 撕开之后骑缝线消失（孔位跟着淡出） */
+.tear.is-torn .tear-perf {
+  opacity: 0;
+}
+
+/* ---------- 撕痕：撕下后，用桌面色把封面底边「啃」出一道锯齿 ---------- */
+.tear-scar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 14px;
+  background: var(--paper-deep);
+  /* 上缘锯齿，形状由 tear-ticket.js 写进 --tear-scar，和票面撕口是同一条曲线 */
+  -webkit-clip-path: var(--tear-scar, none);
+  clip-path: var(--tear-scar, none);
+  opacity: 0;
+  transition: opacity 0.35s ease 0.22s;
+}
+.tear.is-torn .tear-scar {
+  opacity: 1;
+}
+
+/* ---------- 票面 ---------- */
+.tear-wrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--tear-line);
+  bottom: 0;
+  /* 用 drop-shadow 而不是 box-shadow：阴影会顺着锯齿撕口走 */
+  filter: drop-shadow(0 1px 0 rgba(70, 50, 20, 0.1));
+  transition: filter 0.25s ease;
+}
+.tear.is-dragging .tear-wrap {
+  filter: drop-shadow(0 8px 10px rgba(70, 50, 20, 0.26));
+}
+.tear.is-torn .tear-wrap {
+  filter: drop-shadow(0 10px 12px rgba(70, 50, 20, 0.22));
+}
+
+.tear-stub {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 26px 16px;
+  font-family: var(--font-serif);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-align: left;
+  color: var(--ink-faded);
+  background-color: var(--paper);
+  border: 0;
+  border-radius: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: grab;
+  /* 触屏上纵向拖动留给页面滚动，撕票用「点」来完成 */
+  touch-action: manipulation;
+  /* 撕口：上缘锯齿，形状由 tear-ticket.js 按固定种子生成 */
+  -webkit-clip-path: var(--tear-edge, none);
+  clip-path: var(--tear-edge, none);
+  transform-origin: 50% 0;
+  transition: transform 0.34s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+/* 撕口露出的纸芯：撕开前纸是完整的，不该有这条亮带 */
+.tear.is-torn .tear-stub {
+  background-image: linear-gradient(var(--tear-fiber), transparent);
+  background-repeat: no-repeat;
+  background-size: 100% 7px;
+  background-position: top;
+  transition: transform 0.5s cubic-bezier(0.3, 0.8, 0.35, 1);
+}
+/* 拖动时取消过渡，撕口必须跟手 */
+.tear.is-dragging .tear-stub {
+  cursor: grabbing;
+  transition: none;
+}
+
+.tear-stub-no {
+  flex: 0 0 auto;
+  font-family: var(--font-type);
+  font-size: 11.5px;
+  letter-spacing: 0.18em;
+  color: var(--ink-faded);
+  white-space: nowrap;
+}
+
+/* 条码：宽窄交替的重复渐变画出来，不用图片，放大也不糊 */
+.tear-stub-code {
+  flex: 1 1 40px;
+  min-width: 0;
+  height: 20px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--ink-light) 0 1px,
+    transparent 1px 3px,
+    var(--ink-light) 3px 4px,
+    transparent 4px 9px,
+    var(--ink-light) 9px 11px,
+    transparent 11px 13px
+  );
+  opacity: 0.42;
+  -webkit-mask-image: linear-gradient(90deg, #000, #000 82%, transparent);
+  mask-image: linear-gradient(90deg, #000, #000 82%, transparent);
+}
+
+.tear-stub-hint {
+  flex: 0 0 auto;
+  font-family: var(--font-hand);
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  color: var(--ink-faded);
+  white-space: nowrap;
+  transition: color 0.25s ease;
+}
+.tear-stub:hover .tear-stub-hint {
+  color: var(--accent);
+}
+
+/* 小箭头：手写体字库没有 ↓ 这个字符，所以用 CSS 画一个 */
+.tear-stub-cue {
+  position: relative;
+  flex: 0 0 auto;
+  width: 1px;
+  height: 10px;
+  background: var(--pencil);
+}
+.tear-stub-cue::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -1px;
+  margin-left: -2.5px;
+  border-left: 2.5px solid transparent;
+  border-right: 2.5px solid transparent;
+  border-top: 4px solid var(--pencil);
+}
+/* 没撕之前轻轻上下晃，暗示这里可以往下撕 */
+.tear:not(.is-torn) .tear-stub-cue {
+  animation: tearCue 1.6s ease-in-out infinite;
+}
+@keyframes tearCue {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(3px);
+    opacity: 1;
+  }
+}
+
+/* 键盘聚焦：outline 会被 clip-path 裁掉，所以改用提示文字上的下划线 */
+.tear-stub:focus-visible {
+  outline: none;
+}
+.tear-stub:focus-visible .tear-stub-hint {
+  color: var(--accent);
+  border-bottom: 1px dashed var(--accent);
+}
+
+/* ---------- 窄屏 ---------- */
+@media (max-width: 720px) {
+  .cover-sheet {
+    --tear-h: 70px;
+  }
+  /* 封面是 min-height:auto，这里多留一段空白，好让撕下的存根有地方落 */
+  .book-cover {
+    padding-bottom: 130px;
+  }
+  .tear-stub {
+    gap: 10px;
+    padding: 12px 20px 14px;
+    font-size: 12px;
+  }
+  .tear-stub-no {
+    font-size: 10.5px;
+  }
+  .tear-stub-hint {
+    font-size: 15px;
+  }
+}
+@media (max-width: 480px) {
+  .tear-stub-code {
+    display: none;
+  }
+}
