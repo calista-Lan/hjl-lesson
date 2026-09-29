@@ -105,6 +105,16 @@ button { font: inherit; color: inherit; }
 }
 .progress i { display: block; width: 0; height: 100%; background: var(--naples); }
 
+/* 背景层：一张铺满视口、固定不动的 canvas，画「光标跟随」的生成点阵。
+   它待在 z-index:-1 —— 页面底色之上、一切内容之下，所以文字永远画在它上面，
+   不存在「先栅格化再重采样」的问题（有字的元素不许 transform 那条铁律没被碰）。
+   pointer-events:none 才不会挡住底下的链接与按钮；脚本被禁用时它就是一块空白。 */
+#bgfx {
+  position: fixed; left: 0; top: 0; width: 100%; height: 100%;
+  z-index: -1; pointer-events: none;
+}
+@media print { #bgfx { display: none; } }
+
 .bar {
   position: sticky; top: 0; z-index: 30;
   background: var(--bg);
@@ -473,6 +483,11 @@ button { font: inherit; color: inherit; }
 </head>
 <body>
 
+  <!-- 背景层：固定铺满的 canvas，画光标跟随的生成点阵。
+       纯装饰 —— aria-hidden 不进阅读顺序，pointer-events:none 不接鼠标事件
+       （否则会把底下的链接和按钮一起挡掉）。脚本关掉时它是一块空白。 -->
+  <canvas aria-hidden="true" id="bgfx"></canvas>
+
   <a class="skip" href="#about">跳到正文</a>
 
   <div aria-hidden="true" class="progress"><i data-progress></i></div>
@@ -787,7 +802,7 @@ button { font: inherit; color: inherit; }
 /* =========================================================
    极简欧式单页 · 交互脚本
    ① 进度线 + 当前章节   ② 续读进度（localStorage）
-   ③ 滚动淡入            ④ 留言板
+   ③ 滚动淡入            ④ 留言板            ⑤ 背景层（光标跟随点阵）
    ========================================================= */
 (function () {
   "use strict";
@@ -1168,6 +1183,248 @@ button { font: inherit; color: inherit; }
       });
     }
   }
+
+  /* ⑤ 背景层：光标跟随的生成点阵
+     ---------------------------------------------------------
+     这一层是手写 canvas，没有引 p5.js。参考站的动效确实是用 p5 做的，但 p5
+     压缩后接近 1MB，而这里只用得上「点 + 线」两件事 —— 手写几十行就够，
+     还能保住「全站零网络请求、断网离线也能打开」这条底线。
+
+     画面：一张极淡的点阵铺满视口（强度等于 --line-soft，算是纸面的质感）；
+     光标进来后，势力半径内的点会亮成冷青、被轻轻推开、再弹回原位，
+     同时几条发丝线把光标和最近的几个点连起来 —— 最近的那一条借一点
+     拿波里黄，沿用全站「暖色 = 你在这儿」的分工。
+
+     三条自我约束：
+       · 只碰坐标、半径和透明度，不碰任何有字的元素；
+       · 用户要求「减少动态效果」时不跑动画循环，点阵与连线立刻到位、没有缓动；
+       · 没人动鼠标、位移也回弹干净之后，循环自己停掉，不空转烧电。
+
+     注：下面 ctx.setTransform 那行是 canvas 的分辨率缩放，跟 CSS 的
+     transform 动画没有关系（那条铁律管的是「有字的元素」）。
+     ========================================================= */
+  (function () {
+    var cvs = document.getElementById("bgfx");
+    if (!cvs || !cvs.getContext) return;
+    var ctx = cvs.getContext("2d");
+    if (!ctx) return;
+
+    /* 想调观感就动这几个数（单位都是 CSS 像素） */
+    var GAP_MIN = 26, GAP_MAX = 40;   /* 点阵间距：窄屏往宽了放，免得糊成一片 */
+    var RADIUS = 165;                 /* 光标的势力半径 */
+    var DOT_R = 1.1;                  /* 点的半径 */
+    var DOT_A = 0.055;                /* 远处点的强度（= --line-soft） */
+    var DOT_A_NEAR = 0.40;            /* 光标脚下的强度 */
+    var RING_R = 8;                   /* 光标圈半径 */
+    var MAX_SHIFT = 2.2;              /* 单点最大位移，再大就嫌闹 */
+    var LINK_MAX = 5;                 /* 最多连几条线 */
+    var INK = "19, 16, 20";           /* --ink */
+    var COLD = "23, 83, 101";         /* --cold */
+    var NAPLES = "168, 132, 44";      /* --naples-ink */
+
+    var W = 0, H = 0, DPR = 1;
+    var dots = [];
+    var mx = 0, my = 0;               /* 原始光标 */
+    var cx = 0, cy = 0;               /* 平滑后的光标：点是跟着它游，不是被硬拽 */
+    var inside = false;
+    var present = 0;                  /* 0..1 光标的存在感，移出后慢慢退场 */
+    var near = [];                    /* 每帧收集「势力范围内」的点，用来连线 */
+    var raf = null, lastTs = 0;
+    var mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    /* 稳定的伪随机：同一个格子在每次重排里都抖向同一处，不会自己乱跳 */
+    function rand(seed) {
+      var v = Math.sin(seed * 12.9898) * 43758.5453;
+      return v - Math.floor(v);
+    }
+
+    function build() {
+      var gap = Math.round(Math.sqrt((W * H) / 1700));
+      gap = Math.max(GAP_MIN, Math.min(GAP_MAX, gap));
+      dots = [];
+      var n = 0;
+      for (var y = gap * 0.5; y < H; y += gap) {
+        for (var x = gap * 0.5; x < W; x += gap) {
+          dots.push({
+            hx: x + (rand(n) - 0.5) * gap * 0.24,      /* 原位：抖一点，别像表格线 */
+            hy: y + (rand(n + 9999) - 0.5) * gap * 0.24,
+            ox: 0, oy: 0, vx: 0, vy: 0                 /* 位移与速度 */
+          });
+          n++;
+        }
+      }
+    }
+
+    function measure() {
+      DPR = Math.min(2, window.devicePixelRatio || 1);  /* 上限 2：3x 屏上点太密反而脏 */
+      W = window.innerWidth;
+      H = window.innerHeight;
+      cvs.width = Math.round(W * DPR);
+      cvs.height = Math.round(H * DPR);
+      cvs.style.width = W + "px";
+      cvs.style.height = H + "px";
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      build();
+      cx = mx; cy = my;
+      paint();
+    }
+
+    /* 一步物理：回弹 + 被光标推开。返回「当前还剩多少动静」，用来决定要不要停循环 */
+    function step(dt) {
+      if (mqReduce.matches) {           /* 要求减少动态效果：一切立刻到位，没有缓动 */
+        present = inside ? 1 : 0;
+        cx = mx; cy = my;
+        return 0;
+      }
+
+      present += ((inside ? 1 : 0) - present) * 0.12 * dt;
+      if (!inside && present < 0.002) present = 0;
+
+      if (inside) {                     /* 光标自己也有一点迟滞 */
+        cx += (mx - cx) * 0.20 * dt;
+        cy += (my - cy) * 0.20 * dt;
+      }
+
+      var energy = present;
+      var damp = Math.pow(0.90, dt);
+
+      for (var i = 0; i < dots.length; i++) {
+        var d = dots[i];
+        var px = d.hx + d.ox, py = d.hy + d.oy;
+
+        if (present > 0.01) {           /* 推开：越近推得越狠，且随存在感退场而减弱 */
+          var dx = px - cx, dy = py - cy;
+          var dist2 = dx * dx + dy * dy;
+          if (dist2 < RADIUS * RADIUS && dist2 > 0.01) {
+            var dist = Math.sqrt(dist2);
+            var f = 1 - dist / RADIUS;
+            f = f * f * 0.62 * present;
+            d.vx += (dx / dist) * f * dt;
+            d.vy += (dy / dist) * f * dt;
+          }
+        }
+
+        d.vx += -d.ox * 0.13 * dt;      /* 回弹：离原位越远拉得越狠 */
+        d.vy += -d.oy * 0.13 * dt;
+        d.vx *= damp; d.vy *= damp;
+        d.ox += d.vx * dt; d.oy += d.vy * dt;
+
+        var len = Math.sqrt(d.ox * d.ox + d.oy * d.oy);
+        if (len > MAX_SHIFT) {          /* 兜底：别让某一帧的力把点甩飞出去 */
+          var k = MAX_SHIFT / len;
+          d.ox *= k; d.oy *= k; d.vx *= k; d.vy *= k;
+          len = MAX_SHIFT;
+        }
+        if (len > energy) energy = len;
+      }
+      return energy;
+    }
+
+    function paint() {
+      ctx.clearRect(0, 0, W, H);
+
+      var n = dots.length, i, d, px, py, t;
+      near.length = 0;
+
+      /* 第一批：没人理的点。合成一条路径、一个颜色，画 1500 个点也就一次填充 */
+      ctx.fillStyle = "rgba(" + INK + ", " + DOT_A + ")";
+      ctx.beginPath();
+      for (i = 0; i < n; i++) {
+        d = dots[i];
+        px = d.hx + d.ox; py = d.hy + d.oy;
+        t = 0;
+        if (present > 0.01) {
+          var dx = px - cx, dy = py - cy;
+          var dist2 = dx * dx + dy * dy;
+          if (dist2 < RADIUS * RADIUS) {
+            var dist = Math.sqrt(dist2);
+            t = (1 - dist / RADIUS) * present;
+            near.push({ d: dist, x: px, y: py });
+          }
+        }
+        if (t > 0.004) continue;        /* 这些留给第二批单独上色 */
+        ctx.moveTo(px + DOT_R, py);
+        ctx.arc(px, py, DOT_R, 0, 6.28319);
+      }
+      ctx.fill();
+
+      /* 第二批：光标势力范围内的点，逐个亮成冷青、个头略涨 */
+      for (i = 0; i < near.length; i++) {
+        var p = near[i];
+        var tt = (1 - p.d / RADIUS) * present;
+        ctx.fillStyle = "rgba(" + COLD + ", " + (DOT_A + (DOT_A_NEAR - DOT_A) * tt).toFixed(3) + ")";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, DOT_R + tt, 0, 6.28319);
+        ctx.fill();
+      }
+
+      if (!near.length || present <= 0.01) return;
+
+      /* 发丝线：从光标连到最近的几个点；最近的那一条用拿波里黄 */
+      near.sort(function (a, b) { return a.d - b.d; });
+      var lim = Math.min(LINK_MAX, near.length);
+      ctx.lineWidth = 1;
+      for (i = 0; i < lim; i++) {
+        var q = near[i];
+        var fall = 1 - q.d / RADIUS;
+        var warm = i === 0;
+        ctx.strokeStyle = "rgba(" + (warm ? NAPLES : COLD) + ", " +
+          (present * fall * (warm ? 0.34 : 0.26)).toFixed(3) + ")";
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(q.x, q.y);
+        ctx.stroke();
+      }
+
+      /* 光标自己：一圈发丝线，没有填充、没有光晕 */
+      ctx.strokeStyle = "rgba(" + COLD + ", " + (present * 0.30).toFixed(3) + ")";
+      ctx.beginPath();
+      ctx.arc(cx, cy, RING_R, 0, 6.28319);
+      ctx.stroke();
+    }
+
+    function loop(ts) {
+      var dt = lastTs ? Math.min(2.4, Math.max(0.35, (ts - lastTs) / 16.67)) : 1;
+      lastTs = ts;
+      var energy = step(dt);
+      paint();
+
+      /* 静下来了就自己停：没人动鼠标的时候这一层不占 CPU */
+      if (mqReduce.matches || (!inside && energy < 0.01)) { raf = null; lastTs = 0; return; }
+      raf = window.requestAnimationFrame(loop);
+    }
+
+    function wake() {
+      if (mqReduce.matches) { step(1); paint(); return; }   /* 不跑循环，直接出结果 */
+      if (raf === null) { lastTs = 0; raf = window.requestAnimationFrame(loop); }
+    }
+
+    window.addEventListener("pointermove", function (ev) {
+      var r = cvs.getBoundingClientRect();
+      mx = ev.clientX - r.left;
+      my = ev.clientY - r.top;
+      inside = true;
+      wake();
+    }, { passive: true });
+
+    /* 指针离开窗口 / 失去焦点 / 抬手（触屏）：把光标请出去，让标记退场 */
+    function leave() { inside = false; wake(); }
+    document.addEventListener("mouseleave", leave);
+    window.addEventListener("blur", leave);
+    /* 抬手退场只对「触屏 / 笔」生效 —— 鼠标点一下不该把标记赶走 */
+    function leaveIfNonMouse(ev) { if (ev.pointerType !== "mouse") leave(); }
+    window.addEventListener("pointerup", leaveIfNonMouse, { passive: true });
+    window.addEventListener("pointercancel", leaveIfNonMouse, { passive: true });
+
+    window.addEventListener("resize", measure);
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) { raf = null; lastTs = 0; inside = false; present = 0; }
+      else { wake(); }
+    });
+    if (mqReduce.addEventListener) mqReduce.addEventListener("change", wake);
+
+    measure();
+  })();
 
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", onScroll);
