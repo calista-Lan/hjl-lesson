@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8"/>
@@ -219,6 +219,11 @@ button { font: inherit; color: inherit; }
 .latin { margin: 13px 0 0; font: 11px/1 var(--mono); letter-spacing: .4em; color: var(--ink-3); }
 .role { margin: 22px 0 0; font-size: 16px; }
 .lede { margin: 14px 0 0; max-width: 46ch; font-size: 15px; color: var(--ink-2); }
+/* 开场那句里的学校名做成外链：
+   沿用「关于我」里内联链接的写法 —— 墨色 + 发丝下划线，悬停转冷色。
+   只改 color / border-color，不碰 transform（有字的元素一律不许做变换动画）。 */
+.lede a { color: var(--ink); border-bottom: 1px solid var(--line); }
+.lede a:hover { color: var(--cold); border-bottom-color: var(--cold); }
 
 /* 续读：上次读到哪一节。第一次来的人看不到这一行。 */
 .resume {
@@ -601,7 +606,7 @@ button { font: inherit; color: inherit; }
             <h1>黄锦澜</h1>
             <p class="latin">huang jin lan</p>
             <p class="role">大模型应用开发专业 · 前端开发学习者</p>
-            <p class="lede">广东科学技术职业学院大模型应用开发专业在读。系统学习大模型开发实战、智能体系统设计、边缘计算应用开发等核心课程。具备基于AI辅助编程的框架开发与前端框架应用能力。</p>
+            <p class="lede"><a href="https://www.gdit.edu.cn/" rel="noopener" target="_blank">广东科学技术职业学院</a>大模型应用开发专业在读。系统学习大模型开发实战、智能体系统设计、边缘计算应用开发等核心课程。具备基于AI辅助编程的框架开发与前端框架应用能力。</p>
 
             <!-- 续读提示：上次读到哪一节。第一次来访时先藏着，由脚本决定是否露出来 -->
             <p class="resume" hidden>
